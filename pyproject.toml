@@ -9,7 +9,9 @@ authors = [
 requires-python = ">=3.9"
 # Ships with the package because the package includes the lexicon database.
 license-files = ["DATA_LICENSE.md"]
-dependencies = []
+dependencies = [
+    "flask>=3.1.3",
+]
 
 [project.scripts]
 benneria = "benneria:main"

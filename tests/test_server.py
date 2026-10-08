@@ -1,63 +1,53 @@
-"""HTTP endpoints, with the server running in a thread."""
+"""HTTP endpoints, through Flask's test client."""
 
 import json
-import threading
-import urllib.error
-import urllib.parse
-import urllib.request
-from http.server import ThreadingHTTPServer
 
 import pytest
 
-from benneria.local import LocalLexicon
-from benneria.server import Handler
+from benneria.app import app
 
 
 @pytest.fixture(scope="module")
-def base_url():
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    server.lexicon = LocalLexicon()
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield f"http://127.0.0.1:{server.server_port}"
-    server.shutdown()
-    server.server_close()
+def client():
+    return app.test_client()
 
 
-def get(base_url, path, **params):
-    url = base_url + path + ("?" + urllib.parse.urlencode(params) if params else "")
-    try:
-        with urllib.request.urlopen(url, timeout=10) as resp:
-            return resp.status, resp.headers.get("Content-Type"), resp.read()
-    except urllib.error.HTTPError as e:
-        return e.code, e.headers.get("Content-Type"), e.read()
+def get(client, path, **params):
+    resp = client.get(path, query_string=params)
+    return resp.status_code, resp.headers.get("Content-Type"), resp.get_data()
 
 
-def test_page_and_static_files(base_url):
+def test_page_and_static_files(client):
     for path in ("/", "/static/app.js", "/static/labels.js", "/static/style.css"):
-        assert get(base_url, path)[0] == 200
+        assert get(client, path)[0] == 200
 
 
-def test_only_listed_static_files_are_served(base_url):
-    assert get(base_url, "/static/../server.py")[0] == 404
-    assert get(base_url, "/static/index.htm")[0] == 404
+def test_only_static_files_are_served(client):
+    assert get(client, "/static/../server.py")[0] == 404
+    assert get(client, "/static/index.htm")[0] == 404
 
 
-def test_lookup(base_url):
-    status, ctype, body = get(base_url, "/api/lookup", word="וַיִּשְׁמְרוּ", always_consonants="1")
+def test_lookup(client):
+    status, ctype, body = get(client, "/api/lookup", word="וַיִּשְׁמְרוּ", always_consonants="1")
     data = json.loads(body)
     assert status == 200 and ctype.startswith("application/json")
     assert data["results"][0]["strong"] == "8104"
+    assert "שָׁמַר".encode() in body  # Hebrew sent as is, not as \u escapes
 
 
-def test_lookup_errors(base_url):
-    assert get(base_url, "/api/lookup")[0] == 400
-    status, _, body = get(base_url, "/api/lookup", word="בָּרָא", lookup_ref="Matthew 1:1")
+def test_lookup_errors(client):
+    assert get(client, "/api/lookup")[0] == 400
+    status, _, body = get(client, "/api/lookup", word="בָּרָא", lookup_ref="Matthew 1:1")
     assert status == 400 and "Unknown book" in json.loads(body)["error"]
 
 
-def test_entry(base_url):
-    data = json.loads(get(base_url, "/api/entry", strong="1254")[2])
+def test_entry(client):
+    data = json.loads(get(client, "/api/entry", strong="1254")[2])
     assert {e["gloss"] for e in data["results"]} == {"shape", "be fat"}
-    assert get(base_url, "/api/entry")[0] == 400
-    assert get(base_url, "/api/entry", id="nbf", bdb="x")[0] == 400
+    assert get(client, "/api/entry")[0] == 400
+    assert get(client, "/api/entry", id="nbf", bdb="x")[0] == 400
+
+
+def test_responses_are_not_cached(client):
+    assert client.get("/api/lookup", query_string={"word": "שמר"}).headers["Cache-Control"] == "no-store"
+    assert client.get("/static/app.js").headers["Cache-Control"] == "no-store"

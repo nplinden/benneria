@@ -2,10 +2,10 @@
 
 A small web dictionary for Biblical Hebrew and Aramaic. Type a word as it appears in the Bible,
 with or without vowels and prefixes, and Benneria finds its dictionary entries in
-Brown-Driver-Briggs and Strong's, with the word's grammatical parse. It works offline: the data
+Brown-Driver-Briggs and Strong's. It works offline: the data
 is a local database built from the Open Scriptures Hebrew Bible Project.
 
-Uses only the Python standard library.
+Built with [Flask](https://flask.palletsprojects.com/); the data build and search use only the Python standard library.
 
 ## Run
 
@@ -14,7 +14,10 @@ uv run benneria                                # http://localhost:8000
 uv run benneria --port 9000 --host 0.0.0.0 --open
 ```
 
-Without uv: `PYTHONPATH=src python -m benneria`.
+Without uv: install the package (`pip install .`), then run `benneria`.
+
+`uv run benneria` uses Flask's development server. The app is a standard WSGI application,
+`benneria.app:app`, so a production WSGI server can run it instead.
 
 Options:
 
@@ -56,7 +59,8 @@ uv run python -m benneria.local "בָּרָא" --ref "Gen 1:1"
 - `src/benneria/local.py`: search over `data/lexicon.sqlite`, and opening entries by id, BDB id or Strong's number
 - `src/benneria/refs.py`: Bible references ("Lev 19:3", "I Samuel 3") to OSIS ids ("Lev.19.3")
 - `src/benneria/hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and search
-- `src/benneria/server.py`: HTTP server and command-line options; serves `static/`, `/api/lookup` and `/api/entry`
+- `src/benneria/app.py`: the Flask app: serves `static/`, `/api/lookup` and `/api/entry`
+- `src/benneria/server.py`: the `benneria` command: runs the app on Flask's development server
 - `src/benneria/static/`: the frontend
   - `index.html`: page markup
   - `style.css`: styles, including dark mode

@@ -28,8 +28,12 @@ Options:
 
 Binding to `0.0.0.0` lets anyone on your network use the server (and, with the Sefaria backend, use it as a proxy to Sefaria).
 
-The local backend is being built to replace Sefaria; until it becomes the default, results from it use simpler cards.
-Search it from the command line:
+The local backend is being built to replace Sefaria. Its results show one card per dictionary
+entry: the forms that matched with a readable parse (e.g. "Conjunction + Qal sequential
+imperfect (wayyiqtol), 3rd masculine plural"), Strong's definition, and the BDB entry
+(collapsed, with tooltips naming verses and parts of speech). Related entries, previous/next
+headwords, and BDB and Strong's cross-references open the entry they point to. Results can be
+filtered by language and part of speech. Search it from the command line:
 
 ```sh
 uv run python -m benneria.local "וַיִּשְׁמְרוּ"

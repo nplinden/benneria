@@ -35,6 +35,9 @@
           <label title="always_split: also look up parts of the input">Substring matches
             <select id="always_split"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
           </label>
+          <label title="strip_prefixes: also match a word without its prefixes (local backend only)">Match without prefixes
+            <select id="strip_prefixes"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
+          </label>
           <label title="never_split: look up the input exactly as typed">Exact input only
             <select id="never_split"><option value="">Default</option><option value="1">Yes</option><option value="0" selected>No</option></select>
           </label>
@@ -48,7 +51,7 @@
           <div class="filters" id="filters"></div>
         </div>
         <div class="filter-row" id="morphRow" hidden>
-          <span class="filter-label" title="Only applies to BDB Augmented Strong entries">Morph <small>BDB Aug. Strong</small></span>
+          <span class="filter-label" id="morphLabel">Morph <small>BDB Aug. Strong</small></span>
           <div class="filters" id="morphFilters"></div>
         </div>
       </section>

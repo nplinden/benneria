@@ -60,6 +60,17 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 status, body = fetch_words(word, qs)
             return self._send(status, body, "application/json; charset=utf-8")
+        if parsed.path == "/api/entry":
+            # Cross-references between entries: ?id=, ?bdb= or ?strong=. Local backend only.
+            qs = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
+            keys = {k: qs.get(k) for k in ("id", "bdb", "strong") if qs.get(k)}
+            if not self.server.lexicon or len(keys) != 1:
+                body = json.dumps({"error": "Use the local backend and one of id, bdb or strong"}).encode()
+                return self._send(400, body, "application/json")
+            kind, value = keys.popitem()
+            result = self.server.lexicon.open(**{"entry_id" if kind == "id" else kind: value})
+            body = json.dumps({"backend": "local", **result}, ensure_ascii=False).encode()
+            return self._send(200, body, "application/json; charset=utf-8")
         if parsed.path == "/favicon.ico":
             return self._send(204, b"", "image/x-icon")
         self._send(404, b"Not found", "text/plain")
@@ -69,7 +80,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             result = self.server.lexicon.search(
                 word, lookup_ref=qs.get("lookup_ref") or None, always_consonants=flag("always_consonants"),
-                always_split=flag("always_split"), never_split=flag("never_split"))
+                always_split=flag("always_split"), never_split=flag("never_split"),
+                strip_prefixes=qs.get("strip_prefixes") != "0")
         except RefError as e:
             return 400, json.dumps({"error": str(e)}).encode()
         return 200, json.dumps({"backend": "local", **result}, ensure_ascii=False).encode()

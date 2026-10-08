@@ -28,10 +28,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from benneria.hebrew import consonantal, pointed
+from benneria.refs import BOOKS, RefError, book_osis
 
 HEBREWLEXICON_COMMIT = "21c9add13bc727d3a951361778e97e3ff7afd1ce"
 MORPHHB_COMMIT = "3d15126fb1ef74867fc1434be1942e837932691f"
-HEBREWLEXICON_FILES = ["LexicalIndex.xml", "BrownDriverBriggs.xml", "HebrewStrong.xml", "AugIndex.xml"]
+HEBREWLEXICON_FILES = ["LexicalIndex.xml", "BrownDriverBriggs.xml", "HebrewStrong.xml", "AugIndex.xml",
+                       "BDBPartsOfSpeech.xml"]
 MORPHHB_BOOKS = [
     "Gen", "Exod", "Lev", "Num", "Deut", "Josh", "Judg", "Ruth", "1Sam", "2Sam", "1Kgs", "2Kgs",
     "1Chr", "2Chr", "Ezra", "Neh", "Esth", "Job", "Ps", "Prov", "Eccl", "Song", "Isa", "Jer",
@@ -176,9 +178,65 @@ def attr(value):
     return html.escape(value, quote=True)
 
 
+# BDB's part-of-speech abbreviations ("n.[m.]pl", "vb. denom") to names, for a tooltip. Filled
+# from BDBPartsOfSpeech.xml by load_bdb_pos(), with that file's errors fixed below.
+BDB_POS_NAMES = {}
+BDB_POS_FIXES = {
+    "gent": "Gentilic",      # listed as "Genitive"
+    "patr": "Patronymic",    # listed as "Particle"
+    "Haph": "Haphel",        # listed as "Hophal"
+    "loc": "Location",       # "Locative" reads oddly in n.pr.loc, a place name
+    "fl": "River", "flum": "River",  # Latin flumen
+}
+BDB_POS_PHRASES = {"n.pr": "Proper Name"}  # replaced before single abbreviations
+
+
+def load_bdb_pos(path):
+    text = path.read_text(encoding="utf-8")
+    BDB_POS_NAMES.update(re.findall(r"<Code>(.*?)</Code>\s*<Name>(.*?)</Name>", text, re.S))
+    BDB_POS_NAMES.update(BDB_POS_FIXES)
+
+
+def bdb_pos_title(abbr):
+    if abbr in BDB_POS_NAMES:  # codes the key lists whole: '1pl', 'particle of negation'
+        return BDB_POS_NAMES[abbr] if BDB_POS_NAMES[abbr] != abbr else None
+    title = abbr
+    for phrase, name in BDB_POS_PHRASES.items():
+        title = re.sub(rf"\b{re.escape(phrase)}\b\.?", name + " ", title)
+    title = re.sub(r"\b[A-Za-z]+\b", lambda m: BDB_POS_NAMES.get(m.group(0), m.group(0)), title)
+    title = re.sub(r"\s+", " ", title.replace(".", " ")).strip()
+    title = title.replace("[ ", "[").replace(" ]", "]")
+    return title if title != abbr else None
+
+
+# Book codes BDB uses in <ref r> that aren't OSIS (typos and BDB's own abbreviations).
+REF_BOOK_FIXES = {"jb": "Job", "zp": "Zeph", "erz": "Ezra", "ikgs": "1Kgs", "jugd": "Judg",
+                  "ez": "Ezek", "is": "Isa", "ho": "Hos", "zec": "Zech"}
+BOOK_NAMES = dict(BOOKS)
+
+
+def normalize_bdb_ref(r):
+    """BDB's r attribute ('Num.21.30', 'Gen.30.20!a', 'Exod24.17', 'Ezra,6,15') to an OSIS
+    verse id and a readable title ('Numbers 21:30'). (None, None) when it can't be read."""
+    r = (r or "").split("-")[0].replace(",", ".").replace(":", ".")
+    m = re.fullmatch(r"([1-3]?[A-Za-z]+)\.?(\d+)(?:\.(\d+))?!?([a-z])?", r)
+    if not m:
+        return None, None
+    book, chapter, verse, half = m.groups()
+    try:
+        book = REF_BOOK_FIXES.get(book.lower()) or book_osis(book)
+    except RefError:
+        return None, None
+    if int(chapter) > 150:  # e.g. 'Ezra.814', a missing dot
+        return None, None
+    osis = ".".join(p for p in (book, chapter, verse) if p)
+    title = f"{BOOK_NAMES[book]} {chapter}" + (f":{verse}" if verse else "") + (half or "")
+    return osis, title
+
+
 def render_bdb(el):
-    """BDB XML element to HTML. Bible references keep their OSIS id in data-ref; Phase 3
-    decides where they link."""
+    """BDB XML element to HTML. Bible references are plain text, with the verse in a tooltip
+    and its OSIS id in data-ref."""
     tag = local(el.tag)
     inner = render_children(el, render_bdb)
     if tag == "w":
@@ -189,7 +247,9 @@ def render_bdb(el):
     if tag == "def":
         return f'<b class="def">{inner}</b>'
     if tag == "pos":
-        return f'<span class="pos">{inner}</span>'
+        title = bdb_pos_title(re.sub(r"\s+", " ", el.text or "").strip()) if len(el) == 0 else None
+        title_attr = f' title="{attr(title)}"' if title else ""
+        return f'<span class="pos"{title_attr}>{inner}</span>'
     if tag == "stem":
         return f'<span class="stem">{inner}</span>'
     if tag == "asp":
@@ -197,8 +257,10 @@ def render_bdb(el):
     if tag == "em":
         return f"<em>{inner}</em>"
     if tag == "ref":
-        r = el.get("r")
-        return f'<a class="ref" data-ref="{attr(r)}">{inner}</a>' if r else inner
+        osis, title = normalize_bdb_ref(el.get("r"))
+        if not osis:
+            return f'<span class="ref">{inner}</span>'
+        return f'<span class="ref" data-ref="{attr(osis)}" title="{attr(title)}">{inner}</span>'
     if tag == "foreign":
         return f'<span class="foreign" lang="{attr(el.get(XML_LANG) or "")}">{inner}</span>'
     if tag == "sense":
@@ -374,6 +436,7 @@ def build(sources, output):
     lex = sources / "HebrewLexicon"
     print("Parsing HebrewLexicon")
     entries, related = parse_lexical_index(lex / "LexicalIndex.xml")
+    load_bdb_pos(lex / "BDBPartsOfSpeech.xml")
     bdb = parse_bdb(lex / "BrownDriverBriggs.xml")
     strongs = parse_strongs(lex / "HebrewStrong.xml")
     aug = parse_aug(lex / "AugIndex.xml")
@@ -416,6 +479,8 @@ def build(sources, output):
             1 for e in entries if e["strong"] and e["strong"].isdigit() and e["strong"] not in strong_numbers),
         "aug numbers pointing to unknown entries": sum(1 for _, eid in aug if eid not in entry_ids),
         "related links to unknown entries": sum(1 for _, rid, _ in related if rid not in entry_ids),
+        "bdb verse references": sum(r[-1].count('class="ref"') for r in bdb),
+        "bdb verse references that could not be read": sum(r[-1].count('<span class="ref">') for r in bdb),
     }
     meta = {
         "schema_version": SCHEMA_VERSION,

@@ -47,22 +47,24 @@ class LocalLexicon:
     # ---------- search ----------
 
     def search(self, word, lookup_ref=None, always_consonants=False, always_split=False,
-               never_split=False):
-        """Returns {"query", "ref", "steps", "results"}; results are ranked entries."""
+               never_split=False, strip_prefixes=True):
+        """Returns {"query", "ref", "steps", "results"}; results are ranked entries.
+        strip_prefixes=False skips step 3 (matching a word without its prefixes)."""
         word = re.sub(r"\s+", " ", word or "").strip()
         ref = to_osis(lookup_ref) if lookup_ref else None
-        matches, steps = self._single(word, ref, always_consonants)
+        opts = (always_consonants, strip_prefixes)
+        matches, steps = self._single(word, ref, *opts)
         words = [w for w in SPLIT.split(word) if w]
         if len(words) > 1 and not never_split and (not matches or always_split):
             for gram in _ngrams(words):
-                found, gram_steps = self._single(gram, ref, always_consonants)
+                found, gram_steps = self._single(gram, ref, *opts)
                 if found:
                     # Remember which piece of the phrase matched, so results keep the phrase's order.
                     matches += [{**m, "piece": len(steps)} for m in found]
                     steps.append({"input": gram, "steps": gram_steps})
         return {"query": word, "ref": ref, "steps": steps, "results": self._entries(matches, ref)}
 
-    def _single(self, word, ref, always_consonants):
+    def _single(self, word, ref, always_consonants, strip_prefixes):
         """Steps 1-4 for one word or phrase. Returns (match rows, names of the steps that matched)."""
         rows, steps = [], []
         if HAS_POINTS.search(word):
@@ -74,7 +76,7 @@ class LocalLexicon:
             if found:
                 rows += [r for r in found if r not in rows]
                 steps.append("consonantal")
-        if not rows:
+        if not rows and strip_prefixes:
             rows = self._forms("bare_c", consonantal(word), ref)
             if rows:
                 steps.append("without prefixes")
@@ -98,6 +100,19 @@ class LocalLexicon:
         if ref and any(r["in_ref"] for r in rows):
             rows = [r for r in rows if r["in_ref"]]
         return rows
+
+    def open(self, entry_id=None, bdb=None, strong=None):
+        """Entries by id, BDB id or Strong's number ('1254' gives 1254a and 1254b), for
+        cross-references. Same shape as search(), with no matched forms."""
+        if entry_id:
+            sql, value = "SELECT id FROM entries WHERE id = ?", entry_id
+        elif bdb:
+            sql, value = "SELECT id FROM entries WHERE bdb_id = ? ORDER BY seq", bdb
+        else:
+            sql, value = "SELECT id FROM entries WHERE strong = ? ORDER BY seq", strong
+        ids = [r["id"] for r in self.db.execute(sql, (value,))]
+        results = [{**self.entry(i), "matches": [], "count": 0, "in_ref": False} for i in ids]
+        return {"query": value, "ref": None, "steps": ["open"], "results": results}
 
     # ---------- results ----------
 

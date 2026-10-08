@@ -36,17 +36,17 @@ uv run python -m benneria.local "בָּרָא" --ref "Gen 1:1"
 ## Features
 
 - Finds inflected and prefixed forms through a spelling index of every word in the Hebrew Bible,
-  e.g. `וַיִּשְׁמְרוּ` → שָׁמַר "keep", parsed "Conjunction + Qal sequential imperfect
-  (wayyiqtol), 3rd masculine plural"
-- Search steps, stopping at the first that finds something: exact spelling (Bible forms and
-  dictionary headwords), consonants only, without prefixes, headwords by consonants, then each
-  word of a phrase
+  e.g. `וַיִּשְׁמְרוּ` → שָׁמַר "keep"
+- Search runs every step and merges the results, closest matches first: exact spelling (Bible
+  forms and dictionary headwords), consonants only, without prefixes, headwords by consonants,
+  then each word of a phrase. A word with several entries finds them all: `תורה` gives both
+  8451 "law" and 8452 "custom"
 - A context verse ("Gen 1:1", "Lev 19.3", "I Samuel 3") picks the entry the word has there
 - Results ranked by phrase order, context verse, exact spelling, Hebrew before Aramaic, then
   frequency
-- One card per dictionary entry: matched forms with their parse and verses, Strong's definition,
-  and the BDB entry (collapsed, with tooltips naming verses and parts of speech)
-- Related entries, previous/next headwords, and BDB and Strong's cross-references open the entry
+- One card per dictionary entry, showing both Strong's definition and the full BDB entry (with
+  tooltips naming verses and parts of speech)
+- Related entries and BDB and Strong's cross-references open the entry
   they point to; each opened entry has its own URL
 - Filters by language and part of speech
 - Recent-search history, back/forward navigation, on-screen Hebrew keyboard, dark mode

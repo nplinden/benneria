@@ -1,17 +1,19 @@
 """
 Local word lookup over data/lexicon.sqlite (built by scripts/build_data.py).
 
-Search follows Sefaria's approach and stops at the first step that finds something:
+Search runs every step and merges what they find, closer matches first:
   1. exact pointed spelling, among the Hebrew Bible's word forms and the dictionary headwords
      (skipped for unpointed input)
-  2. consonants only (also run when always_consonants is set)
-  3. consonants only, with the word's prefixes removed
-  4. dictionary headwords, consonants only, for words that don't occur in the Bible
-  5. for multi-word input, each run of consecutive words, longest first (unless never_split;
-     also run when always_split is set)
+  2. consonants only
+  3. consonants only, with the word's prefixes removed (unless strip_prefixes is off)
+  4. dictionary headwords, consonants only
+  5. for multi-word input, each run of consecutive words, longest first, when the whole input
+     found nothing or always_split is set (never with never_split)
+Steps 2-4 ignore vowels. For pointed input they only run alongside step 1 when always_consonants
+is set; otherwise they are a fallback when nothing closer was found.
 With a context reference, spellings found in that verse are kept, falling back to all.
-Results are ranked by: position in a multi-word input, use in the context verse, exact spelling
-before looser matches, Hebrew before Aramaic, then frequency.
+Results are ranked by: position in a multi-word input, use in the context verse, closest step
+(exact spelling first), Hebrew before Aramaic, then frequency.
 
 Try it from the command line:
     uv run python -m benneria.local "וַיִּשְׁמְרוּ" [--ref "Ps 59:1"]
@@ -66,39 +68,55 @@ class LocalLexicon:
         return {"query": word, "ref": ref, "steps": steps, "results": self._entries(matches, ref)}
 
     def _single(self, word, ref, always_consonants, strip_prefixes):
-        """Steps 1-4 for one word or phrase. Returns (match rows, names of the steps that matched)."""
-        # Each row keeps the step that found it ("tier"), so exact matches can rank first.
+        """Steps 1-4 for one word or phrase. Returns (match rows, names of the steps that matched).
+
+        Every step runs and their matches are merged, so a word with several entries finds them
+        all (unpointed תורה: 8451 "law" from Bible forms and 8452 "custom" from the headwords).
+        Each row keeps the step that found it ("tier"), so closer matches rank first. The steps
+        that compare consonants only run alongside the others when vowels may be ignored
+        (unpointed input, or always_consonants); otherwise they are a fallback when nothing closer
+        was found."""
         rows, steps = [], []
+        seen_forms, seen_entries = set(), set()
+
+        def add(step, tier, found, headwords=False):
+            new = []
+            for r in found:
+                if headwords:
+                    # A headword match adds nothing for an entry already found another way.
+                    if r["entry_id"] in seen_entries:
+                        continue
+                else:
+                    key = (r["entry_id"], r["form"], r["morph"], r["variant"])
+                    if key in seen_forms:
+                        continue
+                    seen_forms.add(key)
+                seen_entries.add(r["entry_id"])
+                new.append({**r, "tier": tier})
+            if new:
+                rows.extend(new)
+                steps.append(step)
+
+        loose = not HAS_POINTS.search(word) or always_consonants
+        c = consonantal(word)
         if HAS_POINTS.search(word):
-            rows = [{**r, "tier": 0} for r in self._forms("form", pointed(word), ref)]
-            if rows:
-                steps.append("exact")
-            # A pointed input that is exactly a dictionary headword also finds that entry, even
-            # when the same spelling occurs in the Bible under another entry (תּוֹרָה "custom").
-            found_ids = {r["entry_id"] for r in rows}
-            headwords = [self._headword_row(r["id"], 0) for r in self.db.execute(
-                "SELECT id FROM entries WHERE headword = ? ORDER BY seq", (pointed(word),))
-                if r["id"] not in found_ids]
-            if headwords:
-                rows += headwords
-                steps.append("exact headword")
-        if not rows or always_consonants:
-            seen = {(r["entry_id"], r["form"], r["morph"], r["variant"]) for r in rows}
-            found = [{**r, "tier": 1} for r in self._forms("form_c", consonantal(word), ref)
-                     if (r["entry_id"], r["form"], r["morph"], r["variant"]) not in seen]
-            if found:
-                rows += found
-                steps.append("consonantal")
-        if not rows and strip_prefixes:
-            rows = [{**r, "tier": 2} for r in self._forms("bare_c", consonantal(word), ref)]
-            if rows:
-                steps.append("without prefixes")
-        if not rows:
-            rows = [self._headword_row(r["id"], 3) for r in self.db.execute(
-                "SELECT id FROM entries WHERE headword_c = ?", (consonantal(word),))]
-            if rows:
-                steps.append("headword")
+            add("exact", 0, self._forms("form", pointed(word), ref))
+            # An exact headword finds its entry even when the same spelling occurs in the Bible
+            # under another entry (תּוֹרָה "custom").
+            add("exact headword", 0, self._headwords("headword", pointed(word)), headwords=True)
+        if loose or not rows:
+            add("consonantal", 1, self._forms("form_c", c, ref))
+        if strip_prefixes and (loose or not rows):
+            add("without prefixes", 2, self._forms("bare_c", c, ref))
+        if loose or not rows:
+            add("headword", 3, self._headwords("headword_c", c), headwords=True)
         return rows, steps
+
+    def _headwords(self, column, value):
+        if not value:
+            return []
+        return [self._headword_row(r["id"], None) for r in self.db.execute(
+            f"SELECT id FROM entries WHERE {column} = ? ORDER BY seq", (value,))]
 
     @staticmethod
     def _headword_row(entry_id, tier):

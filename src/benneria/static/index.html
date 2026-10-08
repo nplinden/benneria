@@ -8,6 +8,7 @@
 </head>
 <body>
 <header>
+  <button type="button" class="ghost options-btn" id="optsBtn" aria-haspopup="dialog" aria-controls="opts">⚙ Options</button>
   <h1>Benneria</h1>
   <p>Brown-Driver-Briggs · Strong's · the Hebrew Bible's word forms, from Open Scriptures</p>
 </header>
@@ -21,45 +22,49 @@
       <button type="button" class="ghost" id="kbBtn">א Keyboard</button>
     </div>
     <div class="keyboard" id="kb"></div>
-    <details class="opts" id="opts" open>
-      <summary>Options<span id="optsCount"></span></summary>
-      <section class="opt-group" id="apiGroup">
-        <h3>Search <span>sent with each lookup; changing one re-runs the search</span></h3>
-        <div class="opts-grid">
-          <label title="lookup_ref: prefer the entries the word has in this verse, chapter or book">Context reference
-            <input id="lookup_ref" type="text" placeholder="e.g. Leviticus 19.3" dir="ltr">
-          </label>
-          <label title="always_consonants: also match spellings with other vowels">Ignore vowels
-            <select id="always_consonants"><option value="">Default</option><option value="1" selected>Yes</option><option value="0">No</option></select>
-          </label>
-          <label title="always_split: for several words, also look up each word even when the whole input matches">Look up each word
-            <select id="always_split"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
-          </label>
-          <label title="strip_prefixes: also match a word without its prefixes (ו, ה, ב, ל, …)">Match without prefixes
-            <select id="strip_prefixes"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
-          </label>
-          <label title="never_split: look up several words only as a whole, never word by word">Exact input only
-            <select id="never_split"><option value="">Default</option><option value="1">Yes</option><option value="0" selected>No</option></select>
-          </label>
-        </div>
-      </section>
-      <section class="opt-group" id="filterGroup">
-        <h3>Result filters <span>applied in this app to the returned entries</span></h3>
-        <p class="filter-empty" id="filtersEmpty">Run a search to filter its results.</p>
-        <div class="filter-row" id="langRow" hidden>
-          <span class="filter-label">Language</span>
-          <div class="filters" id="langFilters"></div>
-        </div>
-        <div class="filter-row" id="posRow" hidden>
-          <span class="filter-label">Part of speech</span>
-          <div class="filters" id="posFilters"></div>
-        </div>
-      </section>
-    </details>
     <div class="history" id="history"></div>
   </form>
+  <p class="results-count" id="optsCount" hidden></p>
   <div id="out"></div>
 </main>
+<dialog class="opts-dialog" id="opts" aria-labelledby="optsTitle">
+  <div class="dialog-head">
+    <h2 id="optsTitle">Options</h2>
+    <button type="button" class="ghost close-btn" id="optsClose" aria-label="Close options">×</button>
+  </div>
+  <section class="opt-group" id="apiGroup">
+    <h3>Search <span>sent with each lookup; changing one re-runs the search</span></h3>
+    <div class="opts-grid">
+      <label title="lookup_ref: prefer the entries the word has in this verse, chapter or book">Context reference
+        <input id="lookup_ref" type="text" placeholder="e.g. Leviticus 19.3" dir="ltr">
+      </label>
+      <label title="always_consonants: also match spellings with other vowels">Ignore vowels
+        <select id="always_consonants"><option value="">Default</option><option value="1" selected>Yes</option><option value="0">No</option></select>
+      </label>
+      <label title="always_split: for several words, also look up each word even when the whole input matches">Look up each word
+        <select id="always_split"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
+      </label>
+      <label title="strip_prefixes: also match a word without its prefixes (ו, ה, ב, ל, …)">Match without prefixes
+        <select id="strip_prefixes"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
+      </label>
+      <label title="never_split: look up several words only as a whole, never word by word">Exact input only
+        <select id="never_split"><option value="">Default</option><option value="1">Yes</option><option value="0" selected>No</option></select>
+      </label>
+    </div>
+  </section>
+  <section class="opt-group" id="filterGroup">
+    <h3>Result filters <span>applied in this app to the returned entries</span></h3>
+    <p class="filter-empty" id="filtersEmpty">Run a search to filter its results.</p>
+    <div class="filter-row" id="langRow" hidden>
+      <span class="filter-label">Language</span>
+      <div class="filters" id="langFilters"></div>
+    </div>
+    <div class="filter-row" id="posRow" hidden>
+      <span class="filter-label">Part of speech</span>
+      <div class="filters" id="posFilters"></div>
+    </div>
+  </section>
+</dialog>
 <footer>
   <p>Lexical data from the
     <a href="https://github.com/openscriptures/HebrewLexicon" target="_blank" rel="noopener">Open Scriptures Hebrew Bible Project</a>

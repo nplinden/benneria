@@ -62,6 +62,19 @@ def test_hebrew_before_aramaic_without_context(lexicon):
     assert "arc" in langs and langs == sorted(langs, key=lambda lang: lang != "heb")
 
 
+def test_all_steps_merge_unpointed(lexicon):
+    # Unpointed תורה: Bible forms give 8451 "law", the headwords add 8452 "custom".
+    out = lexicon.search("תורה")
+    assert [e["strong"] for e in out["results"]][:2] == ["8451", "8452"]
+    assert out["steps"][0] == "consonantal" and "headword" in out["steps"]
+
+
+def test_pointed_input_without_ignore_vowels_stays_strict(lexicon):
+    # Without always_consonants, a pointed word that matches exactly doesn't add looser matches.
+    out = lexicon.search("וַיִּשְׁמְרוּ")
+    assert out["steps"] == ["exact"]
+
+
 def test_exact_headword_shares_spelling_with_another_entry(lexicon):
     # תּוֹרָה occurs in the Bible only as 8451 "law"; 8452 "custom" has the same headword.
     out = lexicon.search("תּוֹרָה")

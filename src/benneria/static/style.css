@@ -38,7 +38,6 @@ details.opts summary { cursor: pointer; }
                      letter-spacing: 0; text-transform: none; color: var(--muted); }
 .filter-row { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; }
 .filter-row[hidden] { display: none; }
-.filter-row.inactive .filters { opacity: .45; }
 .filter-label { flex: none; width: 92px; font-size: 13px; line-height: 1.2; }
 .filter-label small { display: block; font-size: 11px; }
 .filter-empty { margin: 8px 0 0; font-size: 13px; font-style: italic; }
@@ -73,18 +72,12 @@ details.opts summary { cursor: pointer; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
 .chip { background: var(--chip); border-radius: 6px; padding: 2px 8px; font-size: 13px; }
 .chip b { color: var(--muted); font-weight: 500; }
-ol.senses { margin: 6px 0; padding-inline-start: 22px; }
-ol.senses ol.senses { margin: 4px 0; }
-ol.senses li { margin: 3px 0; }
-.stem { font-weight: 600; color: var(--accent); margin-inline-end: 6px; font-style: italic; }
-.num { font-weight: 700; margin-inline-end: 4px; }
 .note { color: var(--muted); font-size: 14px; margin-top: 8px; }
 .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px;
        font-size: 14px; }
 .nav a, .refs a, .entry a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .nav a:hover, .entry a:hover { text-decoration: underline; }
 .refs { font-size: 13px; color: var(--muted); margin-top: 8px; }
-.attrib { font-size: 12px; color: var(--muted); margin-top: 10px; }
 .history { font-size: 13px; color: var(--muted); margin-top: 8px; display: flex;
            flex-wrap: wrap; gap: 6px; align-items: center; }
 .history a { background: var(--chip); padding: 2px 8px; border-radius: 6px; cursor: pointer;
@@ -94,7 +87,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px
 footer p { margin: 0 auto; max-width: 720px; line-height: 1.5; }
 footer a { color: inherit; }
 
-/* Local backend cards */
+/* Entry cards */
 .forms { font-size: 14px; margin: 4px 0 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .forms .form { background: var(--chip); border-radius: 6px; padding: 2px 8px; }
 .forms .form.in-ref { outline: 1px solid var(--accent-2); }

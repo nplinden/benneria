@@ -2,15 +2,16 @@
 Local word lookup over data/lexicon.sqlite (built by scripts/build_data.py).
 
 Search follows Sefaria's approach and stops at the first step that finds something:
-  1. exact pointed spelling, among the Hebrew Bible's word forms (skipped for unpointed input)
+  1. exact pointed spelling, among the Hebrew Bible's word forms and the dictionary headwords
+     (skipped for unpointed input)
   2. consonants only (also run when always_consonants is set)
   3. consonants only, with the word's prefixes removed
   4. dictionary headwords, consonants only, for words that don't occur in the Bible
   5. for multi-word input, each run of consecutive words, longest first (unless never_split;
      also run when always_split is set)
 With a context reference, spellings found in that verse are kept, falling back to all.
-Results are ranked by: position in a multi-word input, use in the context verse, Hebrew before
-Aramaic, then frequency.
+Results are ranked by: position in a multi-word input, use in the context verse, exact spelling
+before looser matches, Hebrew before Aramaic, then frequency.
 
 Try it from the command line:
     uv run python -m benneria.local "וַיִּשְׁמְרוּ" [--ref "Ps 59:1"]
@@ -66,28 +67,44 @@ class LocalLexicon:
 
     def _single(self, word, ref, always_consonants, strip_prefixes):
         """Steps 1-4 for one word or phrase. Returns (match rows, names of the steps that matched)."""
+        # Each row keeps the step that found it ("tier"), so exact matches can rank first.
         rows, steps = [], []
         if HAS_POINTS.search(word):
-            rows = self._forms("form", pointed(word), ref)
+            rows = [{**r, "tier": 0} for r in self._forms("form", pointed(word), ref)]
             if rows:
                 steps.append("exact")
+            # A pointed input that is exactly a dictionary headword also finds that entry, even
+            # when the same spelling occurs in the Bible under another entry (תּוֹרָה "custom").
+            found_ids = {r["entry_id"] for r in rows}
+            headwords = [self._headword_row(r["id"], 0) for r in self.db.execute(
+                "SELECT id FROM entries WHERE headword = ? ORDER BY seq", (pointed(word),))
+                if r["id"] not in found_ids]
+            if headwords:
+                rows += headwords
+                steps.append("exact headword")
         if not rows or always_consonants:
-            found = self._forms("form_c", consonantal(word), ref)
+            seen = {(r["entry_id"], r["form"], r["morph"], r["variant"]) for r in rows}
+            found = [{**r, "tier": 1} for r in self._forms("form_c", consonantal(word), ref)
+                     if (r["entry_id"], r["form"], r["morph"], r["variant"]) not in seen]
             if found:
-                rows += [r for r in found if r not in rows]
+                rows += found
                 steps.append("consonantal")
         if not rows and strip_prefixes:
-            rows = self._forms("bare_c", consonantal(word), ref)
+            rows = [{**r, "tier": 2} for r in self._forms("bare_c", consonantal(word), ref)]
             if rows:
                 steps.append("without prefixes")
         if not rows:
-            rows = [{"entry_id": r["id"], "form": None, "morph": None, "variant": None, "count": 0,
-                     "refs": "", "in_ref": False}
-                    for r in self.db.execute("SELECT id FROM entries WHERE headword_c = ?",
-                                             (consonantal(word),))]
+            rows = [self._headword_row(r["id"], 3) for r in self.db.execute(
+                "SELECT id FROM entries WHERE headword_c = ?", (consonantal(word),))]
             if rows:
                 steps.append("headword")
         return rows, steps
+
+    @staticmethod
+    def _headword_row(entry_id, tier):
+        """A match on the dictionary headword itself, not on a Bible spelling."""
+        return {"entry_id": entry_id, "form": None, "morph": None, "variant": None, "count": 0,
+                "refs": "", "in_ref": False, "tier": tier}
 
     def _forms(self, column, value, ref):
         if not value:
@@ -123,7 +140,7 @@ class LocalLexicon:
         results = []
         for entry_id, ms in by_entry.items():
             e = self.entry(entry_id)
-            ms.sort(key=lambda m: (-m["in_ref"], -m["count"]))
+            ms.sort(key=lambda m: (-m["in_ref"], m["tier"], -m["count"]))
             e["matches"] = [{
                 "form": m["form"], "morph": m["morph"], "variant": m["variant"], "count": m["count"],
                 "in_ref": m["in_ref"],
@@ -134,12 +151,14 @@ class LocalLexicon:
             e["count"] = sum(m["count"] for m in ms)
             e["in_ref"] = any(m["in_ref"] for m in ms)
             e["piece"] = min(m.get("piece", 0) for m in ms)
+            e["tier"] = min(m["tier"] for m in ms)
             results.append(e)
-        # Phrase order first, then entries used in the context verse, then Hebrew before Aramaic
-        # (98% of the Bible's words are Hebrew), then the most frequent.
-        results.sort(key=lambda e: (e["piece"], -e["in_ref"], e["lang"] != "heb", -e["count"]))
+        # Phrase order first, then entries used in the context verse, then exact spellings before
+        # looser matches, then Hebrew before Aramaic (98% of the Bible's words are Hebrew), then
+        # the most frequent.
+        results.sort(key=lambda e: (e["piece"], -e["in_ref"], e["tier"], e["lang"] != "heb", -e["count"]))
         for e in results:
-            del e["piece"]
+            del e["piece"], e["tier"]
         return results
 
     def entry(self, entry_id):

@@ -1,162 +1,23 @@
 const $ = (s) => document.querySelector(s);
 const out = $("#out");
 let lastResults = [];
-const lexChoice = new Map();  // lexicon -> shown?, set when the user toggles a filter
 
 // ---------- helpers ----------
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
   ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const safeDecode = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
-const safeUrl = (u) => /^https?:\/\//i.test(String(u ?? "")) ? u : "";
-
-// Sefaria definitions contain HTML. Keep a safe subset of it and route links.
-const OK_TAGS = new Set(["A","B","I","EM","STRONG","SPAN","SUP","SUB","BR","SMALL","BIG","U","P","DIV"]);
-function sanitize(html) {
-  const doc = new DOMParser().parseFromString(`<div>${html ?? ""}</div>`, "text/html");
-  const root = doc.body.firstChild;
-  // Pass 1: drop dangerous elements, unwrap any other non-whitelisted tag.
-  root.querySelectorAll("script,style,iframe,object,embed,noscript,template").forEach(el => el.remove());
-  let bad;
-  while ((bad = [...root.querySelectorAll("*")].find(el => !OK_TAGS.has(el.tagName)))) {
-    bad.replaceWith(...bad.childNodes);
-  }
-  // Pass 2: strip attributes and route links (each element visited once).
-  const walk = (node) => {
-    [...node.children].forEach(el => {
-      const href = el.tagName === "A" ? el.getAttribute("href") : null;
-      [...el.attributes].forEach(a => { if (a.name !== "dir") el.removeAttribute(a.name); });
-      if (href !== null) {
-        const m = href.match(/^\/?words?\/([^?#]+)/) || href.match(/[?&]lookup=([^&#]+)/);
-        if (m) { el.setAttribute("data-word", safeDecode(m[1])); el.setAttribute("href", "#"); }
-        else if (/^\//.test(href)) { el.setAttribute("href", "https://www.sefaria.org" + href); el.setAttribute("target","_blank"); el.setAttribute("rel","noopener"); }
-        else if (/^https?:/i.test(href)) { el.setAttribute("href", href); el.setAttribute("target","_blank"); el.setAttribute("rel","noopener"); }
-      }
-      walk(el);
-    });
-  };
-  walk(doc.body.firstChild);
-  return doc.body.firstChild.innerHTML;
-}
-
+// Tag with an optional label. Values come from the lexicon database and are escaped.
 function chip(label, value) {
   if (value === undefined || value === null || value === "" || value === false) return "";
-  if (Array.isArray(value)) { if (!value.length) return ""; value = value.join(", "); }
-  if (value === true) return `<span class="chip">${esc(label)}</span>`;
-  return `<span class="chip">${label ? `<b>${esc(label)}</b> ` : ""}${sanitize(String(value))}</span>`;
-}
-
-function grammarText(g) {
-  if (!g) return "";
-  const parts = [];
-  if (g.verbal_stem) parts.push(g.verbal_stem);
-  if (g.binyan_form) parts.push(Array.isArray(g.binyan_form) ? g.binyan_form.join(", ") : g.binyan_form);
-  if (g.morphology) parts.push(g.morphology);
-  if (g.language_code) parts.push(g.language_code);
-  return parts.join(" · ");
-}
-
-function renderSenses(senses) {
-  if (!Array.isArray(senses) || !senses.length) return "";
-  const items = senses.map(s => {
-    if (typeof s === "string") return `<li>${sanitize(s)}</li>`;
-    let h = "";
-    const num = s.number || s.num;
-    if (s.pre_num) h += `<span class="note">${sanitize(s.pre_num)}</span> `;
-    if (num) h += `<span class="num">${esc(num)}</span>`;
-    const g = grammarText(s.grammar) || s.form || "";
-    if (g) h += `<span class="stem">${esc(g)}</span>`;
-    if (s.morphology) h += `<span class="stem">${esc(s.morphology)}</span>`;
-    if (s.definition) h += sanitize(s.definition);
-    if (s.alternative) h += ` <span class="note">(alt. ${sanitize(s.alternative)})</span>`;
-    if (s.plural_form) h += ` <span class="note">pl. ${sanitize(Array.isArray(s.plural_form) ? s.plural_form.join(", ") : s.plural_form)}</span>`;
-    if (s.occurrences || s.occurences) h += ` <span class="note">(${esc(s.occurrences || s.occurences)}×)</span>`;
-    if (s.all_cited) h += ` <span class="note" title="All occurrences cited">†</span>`;
-    if (s.note) h += `<div class="note">${sanitize(s.note)}</div>`;
-    if (s.notes) h += `<div class="note">${sanitize(s.notes)}</div>`;
-    if (s.senses) h += renderSenses(s.senses);
-    return `<li>${h}</li>`;
-  }).join("");
-  return `<ol class="senses">${items}</ol>`;
-}
-
-function altHeadwords(a) {
-  if (!a) return "";
-  if (!Array.isArray(a)) a = [a];
-  return a.map(x => typeof x === "object" ? (x.word || "") + (x.occurrences || x.occurences ? ` (${x.occurrences || x.occurences}×)` : "") : x)
-          .filter(Boolean).join(", ");
-}
-
-function wordLink(w) { return `<a data-word="${esc(w)}" href="#" class="he">${esc(w)}</a>`; }
-
-function renderEntry(e) {
-  const c = e.content || {};
-  const lex = e.parent_lexicon || "Dictionary";
-  let hwExtra = "";
-  if (e.headword_suffix) hwExtra += ` ${esc(e.headword_suffix)}`;
-  if (e.ordinal) hwExtra += ` <small>${esc(e.ordinal)}</small>`;
-  if (e.root) hwExtra += ` <small>root</small>`;
-  if (e.peculiar) hwExtra += ` <small title="Peculiar to Biblical Aramaic">‡</small>`;
-  if (e.all_cited) hwExtra += ` <small title="All occurrences cited">†</small>`;
-
-  const meta = [
-    chip("", entryLex(e) === MORPH_LEX && entryMorph(e) ? morphName(entryMorph(e)) : c.morphology || e.morphology),
-    chip("", langName(e.language_code)),
-    chip("Strong's", e.strong_number || e.strong_numbers),
-    chip("TWOT", e.TWOT),
-    chip("GK", e.GK),
-    chip("Occurrences", e.occurrences),
-    chip("Plural", e.plural_form),
-    chip("Also", altHeadwords(e.alt_headwords)),
-    chip("Ref.", e.language_reference),
-  ].join("");
-
-  let body = renderSenses(c.senses);
-  if (!body && typeof c === "string") body = `<div>${sanitize(c)}</div>`;
-  if (e.notes) body += `<div class="note">${sanitize(e.notes)}</div>`;
-  if (e.derivatives) body += `<div class="note"><b>Derivatives:</b> ${sanitize(e.derivatives)}</div>`;
-  if (e.quotes && (Array.isArray(e.quotes) ? e.quotes.length : true))
-    body += `<div class="note"><b>Quotes:</b> ${sanitize(Array.isArray(e.quotes) ? e.quotes.join("; ") : e.quotes)}</div>`;
-
-  let refs = "";
-  if (Array.isArray(e.refs) && e.refs.length) {
-    refs = `<div class="refs">Sources: ` + e.refs.map(r =>
-      `<a href="https://www.sefaria.org/${encodeURIComponent(r.replace(/ /g, "_"))}" target="_blank" rel="noopener">${esc(r)}</a>`
-    ).join(" · ") + `</div>`;
-  }
-
-  let nav = "";
-  if (e.prev_hw || e.next_hw) {
-    nav = `<div class="nav"><span>${e.prev_hw ? "← " + wordLink(e.prev_hw) : ""}</span>
-           <span>${e.next_hw ? wordLink(e.next_hw) + " →" : ""}</span></div>`;
-  }
-
-  const d = e.parent_lexicon_details || {};
-  let attrib = "";
-  if (d.source || d.attribution) {
-    const srcUrl = safeUrl(d.source_url), attUrl = safeUrl(d.attribution_url);
-    const src = d.source ? (srcUrl ? `<a href="${esc(srcUrl)}" target="_blank" rel="noopener">${esc(d.source)}</a>` : esc(d.source)) : "";
-    const att = d.attribution ? (attUrl ? `<a href="${esc(attUrl)}" target="_blank" rel="noopener">${esc(d.attribution)}</a>` : esc(d.attribution)) : "";
-    attrib = `<div class="attrib">${[src, att].filter(Boolean).join(" — ")}</div>`;
-  }
-
-  return `<article class="entry">
-    <div class="entry-head">
-      <div class="hw" dir="rtl">${esc(e.headword)}${hwExtra}</div>
-      <div class="lex">${esc(lex)}</div>
-    </div>
-    ${meta ? `<div class="meta">${meta}</div>` : ""}
-    ${body || `<div class="note">No definition text in this entry.</div>`}
-    ${refs}${nav}${attrib}
-  </article>`;
+  return `<span class="chip">${label ? `<b>${esc(label)}</b> ` : ""}${esc(String(value))}</span>`;
 }
 
 // OSIS verse id to a short reference: "Neh.12.45" -> "Neh 12:45".
 const verseLabel = (v) => v.replace(/^(\w+)\.(\d+)\.(\d+)$/, "$1 $2:$3");
 const entryLink = (r) => `<a data-entry="${esc(r.id)}" href="#" class="he">${esc(r.headword)}</a>`;
 
-// Local backend entry. Its BDB and Strong's HTML is generated by scripts/build_data.py from
+// One dictionary entry. Its BDB and Strong's HTML is generated by scripts/build_data.py from
 // escaped XML text and a fixed set of tags, so it is inserted as is.
-function renderLocalEntry(e) {
+function renderEntry(e) {
   const s = e.strongs || {};
   const meta = [
     chip("", s.pos ? morphName(s.pos) : posName(e.pos)),
@@ -197,20 +58,15 @@ function renderLocalEntry(e) {
 
 // ---------- filters ----------
 // These run in the browser on the returned entries; they never change the request.
-// Choices persist across searches until the page is reloaded.
-// Local results are grouped by language (Hebrew/Aramaic) instead of by dictionary.
-const DEFAULT_LEXICONS = new Set(["BDB Augmented Strong", "Hebrew", "Aramaic"]);
-const MORPH_LEX = "BDB Augmented Strong";  // the only lexicon with Strong's-style morph codes
-const morphChoice = new Map();  // morph code -> shown?, set when the user toggles a filter
+// Choices persist across searches until the page is reloaded; everything is shown by default.
+const langChoice = new Map();  // "Hebrew" / "Aramaic" -> shown?
+const posChoice = new Map();   // Lexical Index part-of-speech code -> shown?
 
-const entryLex = (e) => e.local ? (e.lang === "arc" ? "Aramaic" : "Hebrew") : e.parent_lexicon || "Dictionary";
-const morphApplies = (e) => e.local || entryLex(e) === MORPH_LEX;
-const entryMorph = (e) => e.local ? (e.pos || "")
-  : String((e.content && e.content.morphology) || e.morphology || "").trim();
-const morphLabel = (m, local) => local ? (m ? posName(m) : "No part of speech") : morphName(m);
-const lexShown = (l) => lexChoice.has(l) ? lexChoice.get(l) : DEFAULT_LEXICONS.has(l);
-const morphShown = (m) => morphChoice.get(m) ?? true;
-const entryShown = (e) => lexShown(entryLex(e)) && (!morphApplies(e) || morphShown(entryMorph(e)));
+const entryLang = (e) => e.lang === "arc" ? "Aramaic" : "Hebrew";
+const entryPos = (e) => e.pos || "";
+const langShown = (l) => langChoice.get(l) ?? true;
+const posShown = (p) => posChoice.get(p) ?? true;
+const entryShown = (e) => langShown(entryLang(e)) && posShown(entryPos(e));
 
 function countBy(items, key) {
   const m = new Map();
@@ -221,24 +77,20 @@ function countBy(items, key) {
 function renderFilters() {
   const has = lastResults.length > 0;
   $("#filtersEmpty").hidden = has;
-  $("#lexRow").hidden = !has;
-  $("#filters").innerHTML = [...countBy(lastResults, entryLex)].map(([l, n]) =>
-    `<label><input type="checkbox" data-lex="${esc(l)}" ${lexShown(l) ? "checked" : ""}> ${esc(l)} (${n})</label>`
+  $("#langRow").hidden = !has;
+  $("#langFilters").innerHTML = [...countBy(lastResults, entryLang)].map(([l, n]) =>
+    `<label><input type="checkbox" data-lang="${esc(l)}" ${langShown(l) ? "checked" : ""}> ${esc(l)} (${n})</label>`
   ).join("");
-
-  const local = lastResults.some(e => e.local);
-  const morphs = countBy(lastResults.filter(morphApplies), entryMorph);
-  $("#morphRow").hidden = !morphs.size;
-  $("#morphRow").classList.toggle("inactive", !local && !lexShown(MORPH_LEX));
-  $("#morphLabel").innerHTML = local ? "Part of speech" : "Morph <small>BDB Aug. Strong</small>";
-  $("#morphFilters").innerHTML = [...morphs].sort((a, b) => b[1] - a[1]).map(([m, n]) =>
-    `<label title="${esc(m || "no morphology given")}"><input type="checkbox" data-morph="${esc(m)}" ${morphShown(m) ? "checked" : ""}> ${esc(morphLabel(m, local))} (${n})</label>`
+  const parts = countBy(lastResults, entryPos);
+  $("#posRow").hidden = !parts.size;
+  $("#posFilters").innerHTML = [...parts].sort((a, b) => b[1] - a[1]).map(([p, n]) =>
+    `<label title="${esc(p || "no part of speech given")}"><input type="checkbox" data-pos="${esc(p)}" ${posShown(p) ? "checked" : ""}> ${esc(p ? posName(p) : "No part of speech")} (${n})</label>`
   ).join("");
 }
 $("#filterGroup").addEventListener("change", (ev) => {
   const d = ev.target.dataset;
-  if (d.lex !== undefined) lexChoice.set(d.lex, ev.target.checked);
-  else if (d.morph !== undefined) morphChoice.set(d.morph, ev.target.checked);
+  if (d.lang !== undefined) langChoice.set(d.lang, ev.target.checked);
+  else if (d.pos !== undefined) posChoice.set(d.pos, ev.target.checked);
   else return;
   renderFilters();
   renderResults();
@@ -247,11 +99,12 @@ $("#filterGroup").addEventListener("change", (ev) => {
 function renderResults() {
   const shown = lastResults.filter(entryShown);
   $("#optsCount").textContent = lastResults.length ? ` · showing ${shown.length} of ${lastResults.length} entries` : "";
-  out.innerHTML = shown.map(e => e.local ? renderLocalEntry(e) : renderEntry(e)).join("") ||
+  out.innerHTML = shown.map(renderEntry).join("") ||
     `<div class="status">No entries match the result filters. Adjust them under Options.</div>`;
 }
 
 // ---------- history ----------
+// The storage key predates the rename to Benneria; kept so existing history survives.
 function getHistory() { try { return JSON.parse(localStorage.getItem("sefaria-dict-history") || "[]"); } catch { return []; } }
 function pushHistory(w) {
   const h = [w, ...getHistory().filter(x => x !== w)].slice(0, 12);
@@ -278,7 +131,7 @@ async function lookup(word, push = true) {
   }
   if (push) history.pushState({ word }, "", "?" + params.toString());
   const ok = await fetchResults("/api/lookup?" + params.toString(), `No dictionary entries found for
-    <span class="he">${esc(word)}</span>. Try turning on “Ignore vowels” or “Substring matches”.`);
+    <span class="he">${esc(word)}</span>. Try turning on “Ignore vowels” or “Look up each word”.`);
   if (ok) pushHistory(word);
 }
 
@@ -299,9 +152,7 @@ async function fetchResults(url, emptyMessage) {
     const r = await fetch(url);
     const data = await r.json();
     if (!r.ok || data.error) throw new Error(data.error || `HTTP ${r.status}`);
-    // The Sefaria backend returns a list of entries; the local one an object with its results.
-    lastResults = Array.isArray(data) ? data
-      : data.backend === "local" ? data.results.map(e => ({ ...e, local: true })) : [];
+    lastResults = data.results || [];
     if (!lastResults.length) {
       out.innerHTML = `<div class="status">${emptyMessage}</div>`;
       return true;
@@ -320,7 +171,7 @@ $("#apiGroup").addEventListener("change", () => { if ($("#q").value.trim()) look
 document.addEventListener("click", (ev) => {
   const a = ev.target.closest("[data-word]");
   if (a) { ev.preventDefault(); lookup(a.dataset.word); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
-  // Cross-references inside local entries: related entries, BDB and Strong's links.
+  // Cross-references inside entries: related entries, BDB and Strong's links.
   const x = ev.target.closest("[data-entry], [data-bdb], [data-strong]");
   if (x) {
     ev.preventDefault();
@@ -361,19 +212,7 @@ $("#kb").addEventListener("click", (ev) => {
 });
 $("#kbBtn").addEventListener("click", () => $("#kb").classList.toggle("show"));
 
-// ---------- credits ----------
-// Header and footer credit the data source the server uses. If that can't be determined,
-// both credits are shown rather than none.
-async function showCredits() {
-  let backend = null;
-  try { backend = (await (await fetch("/api/info")).json()).backend; } catch {}
-  document.querySelectorAll("[data-backend]").forEach(el => {
-    el.hidden = backend !== null && el.dataset.backend !== backend;
-  });
-}
-
 // ---------- init ----------
-showCredits();
 renderHistory();
 const init = new URLSearchParams(location.search);
 for (const k of SEARCH_OPTIONS)

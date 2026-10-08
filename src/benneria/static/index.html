@@ -9,9 +9,7 @@
 <body>
 <header>
   <h1>Benneria</h1>
-  <!-- Credits match the running backend; app.js shows the right one from /api/info. -->
-  <p data-backend="sefaria" hidden>Jastrow · BDB · Strong's · Klein, via the Sefaria Lexicon API</p>
-  <p data-backend="local" hidden>Brown-Driver-Briggs · Strong's · the Hebrew Bible's word forms, from Open Scriptures</p>
+  <p>Brown-Driver-Briggs · Strong's · the Hebrew Bible's word forms, from Open Scriptures</p>
 </header>
 <main>
   <form id="f" autocomplete="off">
@@ -28,19 +26,19 @@
       <section class="opt-group" id="apiGroup">
         <h3>Search <span>sent with each lookup; changing one re-runs the search</span></h3>
         <div class="opts-grid">
-          <label title="lookup_ref: rank entries for the word as it appears in this text">Context reference
+          <label title="lookup_ref: prefer the entries the word has in this verse, chapter or book">Context reference
             <input id="lookup_ref" type="text" placeholder="e.g. Leviticus 19.3" dir="ltr">
           </label>
-          <label title="always_consonants: match on consonants only">Ignore vowels
+          <label title="always_consonants: also match spellings with other vowels">Ignore vowels
             <select id="always_consonants"><option value="">Default</option><option value="1" selected>Yes</option><option value="0">No</option></select>
           </label>
-          <label title="always_split: also look up parts of the input">Substring matches
+          <label title="always_split: for several words, also look up each word even when the whole input matches">Look up each word
             <select id="always_split"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
           </label>
-          <label title="strip_prefixes: also match a word without its prefixes (local backend only)">Match without prefixes
+          <label title="strip_prefixes: also match a word without its prefixes (ו, ה, ב, ל, …)">Match without prefixes
             <select id="strip_prefixes"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
           </label>
-          <label title="never_split: look up the input exactly as typed">Exact input only
+          <label title="never_split: look up several words only as a whole, never word by word">Exact input only
             <select id="never_split"><option value="">Default</option><option value="1">Yes</option><option value="0" selected>No</option></select>
           </label>
         </div>
@@ -48,13 +46,13 @@
       <section class="opt-group" id="filterGroup">
         <h3>Result filters <span>applied in this app to the returned entries</span></h3>
         <p class="filter-empty" id="filtersEmpty">Run a search to filter its results.</p>
-        <div class="filter-row" id="lexRow" hidden>
-          <span class="filter-label">Dictionary</span>
-          <div class="filters" id="filters"></div>
+        <div class="filter-row" id="langRow" hidden>
+          <span class="filter-label">Language</span>
+          <div class="filters" id="langFilters"></div>
         </div>
-        <div class="filter-row" id="morphRow" hidden>
-          <span class="filter-label" id="morphLabel">Morph <small>BDB Aug. Strong</small></span>
-          <div class="filters" id="morphFilters"></div>
+        <div class="filter-row" id="posRow" hidden>
+          <span class="filter-label">Part of speech</span>
+          <div class="filters" id="posFilters"></div>
         </div>
       </section>
     </details>
@@ -63,8 +61,7 @@
   <div id="out"></div>
 </main>
 <footer>
-  <p data-backend="sefaria" hidden>Data from <a href="https://www.sefaria.org" target="_blank" rel="noopener">Sefaria</a>. Each dictionary keeps its own license and attribution.</p>
-  <p data-backend="local" hidden>Lexical data from the
+  <p>Lexical data from the
     <a href="https://github.com/openscriptures/HebrewLexicon" target="_blank" rel="noopener">Open Scriptures Hebrew Bible Project</a>
     (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>);
     the text of Brown-Driver-Briggs and Strong's Hebrew dictionary is in the public domain.

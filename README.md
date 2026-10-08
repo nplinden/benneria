@@ -1,9 +1,9 @@
 # Benneria
 
-A small web dictionary for Hebrew and Aramaic words. It serves a single-page UI
-and proxies lookups to the [Sefaria](https://www.sefaria.org) Lexicon API
-(`GET https://www.sefaria.org/api/words/{word}`), showing entries from Jastrow,
-BDB, Strong's, Klein and the other lexicons Sefaria hosts.
+A small web dictionary for Biblical Hebrew and Aramaic. Type a word as it appears in the Bible,
+with or without vowels and prefixes, and Benneria finds its dictionary entries in
+Brown-Driver-Briggs and Strong's, with the word's grammatical parse. It works offline: the data
+is a local database built from the Open Scriptures Hebrew Bible Project.
 
 Uses only the Python standard library.
 
@@ -12,7 +12,6 @@ Uses only the Python standard library.
 ```sh
 uv run benneria                                # http://localhost:8000
 uv run benneria --port 9000 --host 0.0.0.0 --open
-uv run benneria --backend local                # look words up in the local lexicon
 ```
 
 Without uv: `PYTHONPATH=src python -m benneria`.
@@ -24,16 +23,10 @@ Options:
 | `--host` | `127.0.0.1` | Interface to bind              |
 | `--port` | `8000`      | Port to listen on              |
 | `--open` | off         | Open the browser on start      |
-| `--backend` | `sefaria` | `sefaria` (the Sefaria API) or `local` (`data/lexicon.sqlite`, no network) |
 
-Binding to `0.0.0.0` lets anyone on your network use the server (and, with the Sefaria backend, use it as a proxy to Sefaria).
+Binding to `0.0.0.0` lets anyone on your network use the server.
 
-The local backend is being built to replace Sefaria. Its results show one card per dictionary
-entry: the forms that matched with a readable parse (e.g. "Conjunction + Qal sequential
-imperfect (wayyiqtol), 3rd masculine plural"), Strong's definition, and the BDB entry
-(collapsed, with tooltips naming verses and parts of speech). Related entries, previous/next
-headwords, and BDB and Strong's cross-references open the entry they point to. Results can be
-filtered by language and part of speech. Search it from the command line:
+Search from the command line:
 
 ```sh
 uv run python -m benneria.local "וַיִּשְׁמְרוּ"
@@ -42,33 +35,54 @@ uv run python -m benneria.local "בָּרָא" --ref "Gen 1:1"
 
 ## Features
 
-- Results grouped by lexicon, with a per-lexicon filter
-- Nested senses, grammar, Strong's/TWOT/GK numbers, source references and
-  previous/next headword navigation
-- Links between dictionary entries open as in-app lookups
-- Search options passed through to Sefaria: `lookup_ref`, `always_consonants`,
-  `always_split`, `never_split`
-- Recent-search history, back/forward navigation, on-screen Hebrew keyboard,
-  dark mode
+- Finds inflected and prefixed forms through a spelling index of every word in the Hebrew Bible,
+  e.g. `וַיִּשְׁמְרוּ` → שָׁמַר "keep", parsed "Conjunction + Qal sequential imperfect
+  (wayyiqtol), 3rd masculine plural"
+- Search steps, stopping at the first that finds something: exact spelling (Bible forms and
+  dictionary headwords), consonants only, without prefixes, headwords by consonants, then each
+  word of a phrase
+- A context verse ("Gen 1:1", "Lev 19.3", "I Samuel 3") picks the entry the word has there
+- Results ranked by phrase order, context verse, exact spelling, Hebrew before Aramaic, then
+  frequency
+- One card per dictionary entry: matched forms with their parse and verses, Strong's definition,
+  and the BDB entry (collapsed, with tooltips naming verses and parts of speech)
+- Related entries, previous/next headwords, and BDB and Strong's cross-references open the entry
+  they point to; each opened entry has its own URL
+- Filters by language and part of speech
+- Recent-search history, back/forward navigation, on-screen Hebrew keyboard, dark mode
 
 ## Layout
 
-- `src/benneria/lookup.py`: Sefaria backend, a proxy to the Sefaria API with an in-memory cache
-- `src/benneria/local.py`: local backend: search over `data/lexicon.sqlite` (exact spelling, consonants, without prefixes, headwords, phrase splitting)
+- `src/benneria/local.py`: search over `data/lexicon.sqlite`, and opening entries by id, BDB id or Strong's number
 - `src/benneria/refs.py`: Bible references ("Lev 19:3", "I Samuel 3") to OSIS ids ("Lev.19.3")
-- `src/benneria/server.py`: HTTP server and command-line options; serves `static/` and `/api/lookup`
+- `src/benneria/hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and search
+- `src/benneria/server.py`: HTTP server and command-line options; serves `static/`, `/api/lookup` and `/api/entry`
 - `src/benneria/static/`: the frontend
   - `index.html`: page markup
   - `style.css`: styles, including dark mode
-  - `labels.js`: display names for morphology and language codes
+  - `labels.js`: display names for parses, parts of speech and languages
   - `app.js`: rendering, filters, search, history and the Hebrew keyboard
-- `src/benneria/hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and lookups
-- `src/benneria/data/lexicon.sqlite`: the local lexicon database, generated by `scripts/build_data.py`, used by the local backend
+- `src/benneria/data/lexicon.sqlite`: the lexicon database, generated by `scripts/build_data.py`
 - `src/benneria/__init__.py`: exposes `main`, the `benneria` console script
+- `scripts/build_data.py`: builds the database
+- `scripts/compare_backends.py`: compares search results with the Sefaria API, the app's former data source
+- `tests/`: the test suite
 
-By default lookups go through Sefaria; each of its lexicons keeps its own license and attribution.
+## Tests
 
-## Local lexicon data
+```sh
+uv run pytest
+```
+
+The tests cover normalization, reference parsing, the data build's helpers, the database's
+integrity, search behaviour, every word of a seeded sample of verses (each must find its own
+entry, ranked first, with its verse as context), and the HTTP endpoints.
+
+`scripts/compare_backends.py` checks search quality against Sefaria's Lexicon API on a seeded
+sample of 200 words, writing `build/compare_backends.md`. It needs network access;
+`--reuse-sefaria build/compare_backends.json` re-runs only the local side of an earlier run.
+
+## Lexicon data
 
 `src/benneria/data/lexicon.sqlite` is built from two OpenScriptures projects, pinned to a commit
 in the script:
@@ -93,8 +107,7 @@ Attribution:
   based on the public-domain Westminster Leningrad Codex.
 
 Both are transformed here: converted from XML to SQLite, joined, and rendered to HTML. See
-[DATA_LICENSE.md](DATA_LICENSE.md) for the full notice, the source commits and the list of changes.
-The app's footer shows this attribution when it runs with the local backend, and Sefaria's
-credit with the Sefaria backend.
+[DATA_LICENSE.md](DATA_LICENSE.md) for the full notice, the source commits and the list of
+changes. The app's footer shows this attribution.
 
 The app's own code has no license yet.

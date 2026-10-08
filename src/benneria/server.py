@@ -1,10 +1,14 @@
 """
-HTTP server: serves the web UI from static/ and the /api/lookup endpoint.
+HTTP server: serves the web UI from static/ and looks words up in data/lexicon.sqlite.
+
+Endpoints:
+    /api/lookup?word=...    search (options: lookup_ref, always_consonants, always_split,
+                            never_split, strip_prefixes)
+    /api/entry?id=|bdb=|strong=...   the entries a cross-reference names
 
 Run:
     uv run benneria                           # http://127.0.0.1:8000
     uv run benneria --port 9000 --host 0.0.0.0 --open
-    uv run benneria --backend local           # look words up in data/lexicon.sqlite
 """
 
 import argparse
@@ -16,7 +20,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
 
 from .local import LocalLexicon
-from .lookup import fetch_words
 from .refs import RefError
 
 STATIC = files("benneria") / "static"
@@ -27,9 +30,12 @@ STATIC_TYPES = {
     "labels.js": "text/javascript; charset=utf-8",
     "app.js": "text/javascript; charset=utf-8",
 }
+JSON = "application/json; charset=utf-8"
 
 
 class Handler(BaseHTTPRequestHandler):
+    """Expects the server to have a `lexicon` attribute (a LocalLexicon)."""
+
     server_version = "Benneria/1.0"
 
     def _send(self, status, body, ctype):
@@ -40,46 +46,31 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_json(self, status, data):
+        return self._send(status, json.dumps(data, ensure_ascii=False).encode(), JSON)
+
     def _send_static(self, name):
         return self._send(200, (STATIC / name).read_bytes(), STATIC_TYPES[name])
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        qs = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
         if parsed.path in ("/", "/index.html"):
             return self._send_static("index.html")
         if parsed.path.startswith("/static/") and parsed.path[len("/static/"):] in STATIC_TYPES:
             return self._send_static(parsed.path[len("/static/"):])
         if parsed.path == "/api/lookup":
-            qs = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
-            word = qs.pop("word", "").strip()
-            if not word:
-                body = json.dumps({"error": "Missing 'word' parameter"}).encode()
-                return self._send(400, body, "application/json")
-            if self.server.lexicon:
-                status, body = self._local_lookup(word, qs)
-            else:
-                status, body = fetch_words(word, qs)
-            return self._send(status, body, "application/json; charset=utf-8")
-        if parsed.path == "/api/info":
-            # Which backend is running, so the page can show the matching credits.
-            body = json.dumps({"backend": "local" if self.server.lexicon else "sefaria"}).encode()
-            return self._send(200, body, "application/json")
+            return self._lookup(qs)
         if parsed.path == "/api/entry":
-            # Cross-references between entries: ?id=, ?bdb= or ?strong=. Local backend only.
-            qs = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
-            keys = {k: qs.get(k) for k in ("id", "bdb", "strong") if qs.get(k)}
-            if not self.server.lexicon or len(keys) != 1:
-                body = json.dumps({"error": "Use the local backend and one of id, bdb or strong"}).encode()
-                return self._send(400, body, "application/json")
-            kind, value = keys.popitem()
-            result = self.server.lexicon.open(**{"entry_id" if kind == "id" else kind: value})
-            body = json.dumps({"backend": "local", **result}, ensure_ascii=False).encode()
-            return self._send(200, body, "application/json; charset=utf-8")
+            return self._entry(qs)
         if parsed.path == "/favicon.ico":
             return self._send(204, b"", "image/x-icon")
         self._send(404, b"Not found", "text/plain")
 
-    def _local_lookup(self, word, qs):
+    def _lookup(self, qs):
+        word = qs.get("word", "").strip()
+        if not word:
+            return self._send_json(400, {"error": "Missing 'word' parameter"})
         flag = lambda k: qs.get(k) == "1"
         try:
             result = self.server.lexicon.search(
@@ -87,8 +78,16 @@ class Handler(BaseHTTPRequestHandler):
                 always_split=flag("always_split"), never_split=flag("never_split"),
                 strip_prefixes=qs.get("strip_prefixes") != "0")
         except RefError as e:
-            return 400, json.dumps({"error": str(e)}).encode()
-        return 200, json.dumps({"backend": "local", **result}, ensure_ascii=False).encode()
+            return self._send_json(400, {"error": str(e)})
+        return self._send_json(200, result)
+
+    def _entry(self, qs):
+        # Cross-references between entries: exactly one of ?id=, ?bdb= or ?strong=.
+        keys = {k: qs[k] for k in ("id", "bdb", "strong") if qs.get(k)}
+        if len(keys) != 1:
+            return self._send_json(400, {"error": "Give one of id, bdb or strong"})
+        kind, value = keys.popitem()
+        return self._send_json(200, self.server.lexicon.open(**{"entry_id" if kind == "id" else kind: value}))
 
     def log_message(self, fmt, *args):
         sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), fmt % args))
@@ -99,14 +98,12 @@ def main():
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--open", action="store_true", help="open the browser on start")
-    ap.add_argument("--backend", choices=("sefaria", "local"), default="sefaria",
-                    help="where words are looked up: the Sefaria API (default) or the local lexicon")
     args = ap.parse_args()
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
-    server.lexicon = LocalLexicon() if args.backend == "local" else None
+    server.lexicon = LocalLexicon()
     url = f"http://{'localhost' if args.host in ('0.0.0.0', '127.0.0.1') else args.host}:{args.port}/"
-    print(f"Benneria running at {url} using the {args.backend} backend  (Ctrl+C to stop)")
+    print(f"Benneria running at {url}  (Ctrl+C to stop)")
     if args.open:
         webbrowser.open(url)
     try:

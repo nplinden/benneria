@@ -205,7 +205,7 @@ def bdb_pos_title(abbr):
         title = re.sub(rf"\b{re.escape(phrase)}\b\.?", name + " ", title)
     title = re.sub(r"\b[A-Za-z]+\b", lambda m: BDB_POS_NAMES.get(m.group(0), m.group(0)), title)
     title = re.sub(r"\s+", " ", title.replace(".", " ")).strip()
-    title = title.replace("[ ", "[").replace(" ]", "]")
+    title = re.sub(r"\]\s*(?=\w)", "] ", title.replace("[ ", "[").replace(" ]", "]"))
     return title if title != abbr else None
 
 

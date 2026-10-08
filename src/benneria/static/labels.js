@@ -1,6 +1,6 @@
 // Display names for the codes found in lexicon entries.
 
-// Strong's part-of-speech key, from OpenScriptures' PartsOfSpeech.xml
+// Strong's part-of-speech key (Strong's entries' pos), from OpenScriptures' PartsOfSpeech.xml
 // (https://github.com/openscriptures/HebrewLexicon/blob/master/PartsOfSpeech.xml).
 const MORPH_NAMES = {
   "a": "Adjective", "a-f": "Adjective Feminine", "a-gent": "Gentilic Adjective",
@@ -23,16 +23,9 @@ const MORPH_NAMES = {
 const morphName = (m) => !m ? "No morph" : MORPH_NAMES[m] ||
   m.split(/\s+/).map(t => MORPH_NAMES[t] || t).join(" / ");
 
-// language_code values: ISO codes in BDB Augmented Strong, abbreviation fragments in Jastrow/Klein.
-const LANG_NAMES = {
-  "heb": "Hebrew", "arc": "Aramaic",
-  "b. h.": "Biblical Hebrew", "ch.": "Aramaic", "PBH": "Post-Biblical Hebrew",
-};
-function langName(code) {
-  if (!code || code === "x-pn") return "";  // x-pn marks a proper name, not a language
-  const key = String(code).trim().replace(/^[(\s]+|[;,\s]+$/g, "");
-  return LANG_NAMES[key] || key;
-}
+// Entry languages.
+const LANG_NAMES = { heb: "Hebrew", arc: "Aramaic" };
+const langName = (code) => LANG_NAMES[code] || code || "";
 
 // OSHB morphology codes, used by morphhb parses ("HC/Vqw3mp") and by the Lexical Index part of
 // speech ("N", "Np", "Td"). From https://hb.openscriptures.org/parsing/HebrewMorphologyCodes.html

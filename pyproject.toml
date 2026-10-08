@@ -1,0 +1,17 @@
+[project]
+name = "sefaria"
+version = "0.1.0"
+description = "A small web dictionary for Hebrew and Aramaic, backed by the Sefaria Lexicon API"
+readme = "README.md"
+authors = [
+    { name = "Nicolas Linden", email = "nicolas@nlinden.com" }
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+sefaria = "sefaria:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"

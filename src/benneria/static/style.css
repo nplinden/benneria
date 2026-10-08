@@ -1,25 +1,12 @@
 :root {
   --bg: #f7f5f0;
   --card: #ffffff;
-  --ink: #1f2430;
+  --ink: #000000;
   --muted: #6b7080;
   --line: #e4e0d6;
-  --accent: #18345d;
-  --accent-2: #b8862b;
-  --chip: #eef1f6;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14161b;
-    --card: #1d2027;
-    --ink: #e8e6e1;
-    --muted: #9aa0ad;
-    --line: #2e323b;
-    --accent: #8fb3e8;
-    --accent-2: #e0b25a;
-    --chip: #262a33;
-  }
+  --accent: #D46D7A;
+  --accent-2: #d46d7a;
+  --chip: #fbeff8;
 }
 
 * {
@@ -88,7 +75,7 @@ button {
   padding: 10px 18px;
   border-radius: 10px;
   border: 0;
-  background: var(--accent);
+  background: var(--accent-2);
   color: var(--card);
   cursor: pointer;
   font-weight: 600;
@@ -324,7 +311,8 @@ button.ghost {
 }
 
 .chip {
-  background: var(--chip);
+  background: var(--bg);
+  font-weight: 400;
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 13px;
@@ -390,7 +378,7 @@ footer a {
 .source h4 {
   margin: 0 0 4px;
   color: var(--accent);
-  font-weight: 600;
+  font-weight: bold;
   font-size: 14px;
 }
 

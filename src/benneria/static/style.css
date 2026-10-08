@@ -91,3 +91,18 @@ ol.senses li { margin: 3px 0; }
              font-family: serif; font-size: 15px; color: var(--ink); }
 [dir=rtl], .he { font-family: "SBL Hebrew", "Ezra SIL", "David", serif; }
 footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+
+/* Local backend cards */
+.forms { font-size: 14px; margin: 4px 0 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.forms .form { background: var(--chip); border-radius: 6px; padding: 2px 8px; }
+.forms .form.in-ref { outline: 1px solid var(--accent-2); }
+.forms .he { font-size: 17px; }
+.forms code { font-size: 12px; color: var(--muted); }
+.forms small { color: var(--muted); }
+details.bdb { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+details.bdb summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
+.bdb .sense { margin: 4px 0 4px 14px; }
+.bdb .stem { font-weight: 700; color: var(--accent); }
+.bdb .pos, .bdb .asp { color: var(--muted); }
+.bdb .hom { font-size: 12px; color: var(--muted); }
+.bdb .ref { color: var(--accent); }

@@ -259,16 +259,13 @@ def parse_bdb(path):
     root = ET.parse(path).getroot()
     for part in root.iter(LEX_NS + "part"):
         lang = part.get(XML_LANG)
-        for section in part.iter(LEX_NS + "section"):
-            page = None
-            for child in section:
-                tag = local(child.tag)
-                if tag == "page":
-                    page = int(child.get("p")) if (child.get("p") or "").isdigit() else page
-                elif tag == "entry":
-                    rows.append((child.get("id"), lang, page, int(child.get("type") == "root"),
-                                 child.get("mod"), child.findtext(LEX_NS + "status"),
-                                 render_bdb(child).strip()))
+        for entry in part.iter(LEX_NS + "entry"):
+            # Every entry's <status p="..."> gives its BDB page; <page> markers are sparse.
+            status = entry.find(LEX_NS + "status")
+            p = status.get("p") if status is not None else None
+            rows.append((entry.get("id"), lang, int(p) if (p or "").isdigit() else None,
+                         int(entry.get("type") == "root"), entry.get("mod"),
+                         status.text if status is not None else None, render_bdb(entry).strip()))
     return rows
 
 

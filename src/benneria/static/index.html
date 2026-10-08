@@ -9,7 +9,9 @@
 <body>
 <header>
   <h1>Benneria</h1>
-  <p>Jastrow · BDB · Strong's · Klein, via the Sefaria Lexicon API</p>
+  <!-- Credits match the running backend; app.js shows the right one from /api/info. -->
+  <p data-backend="sefaria" hidden>Jastrow · BDB · Strong's · Klein, via the Sefaria Lexicon API</p>
+  <p data-backend="local" hidden>Brown-Driver-Briggs · Strong's · the Hebrew Bible's word forms, from Open Scriptures</p>
 </header>
 <main>
   <form id="f" autocomplete="off">
@@ -60,7 +62,17 @@
   </form>
   <div id="out"></div>
 </main>
-<footer>Data from <a href="https://www.sefaria.org" target="_blank" rel="noopener">Sefaria</a>. Each dictionary keeps its own license and attribution.</footer>
+<footer>
+  <p data-backend="sefaria" hidden>Data from <a href="https://www.sefaria.org" target="_blank" rel="noopener">Sefaria</a>. Each dictionary keeps its own license and attribution.</p>
+  <p data-backend="local" hidden>Lexical data from the
+    <a href="https://github.com/openscriptures/HebrewLexicon" target="_blank" rel="noopener">Open Scriptures Hebrew Bible Project</a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>);
+    the text of Brown-Driver-Briggs and Strong's Hebrew dictionary is in the public domain.
+    Original work of the Open Scriptures Hebrew Bible available at
+    <a href="https://github.com/openscriptures/morphhb" target="_blank" rel="noopener">https://github.com/openscriptures/morphhb</a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
+    Both are transformed here: converted to a database, joined, and rendered for display.</p>
+</footer>
 
 <script src="/static/labels.js"></script>
 <script src="/static/app.js"></script>

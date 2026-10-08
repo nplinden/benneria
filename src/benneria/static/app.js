@@ -361,7 +361,19 @@ $("#kb").addEventListener("click", (ev) => {
 });
 $("#kbBtn").addEventListener("click", () => $("#kb").classList.toggle("show"));
 
+// ---------- credits ----------
+// Header and footer credit the data source the server uses. If that can't be determined,
+// both credits are shown rather than none.
+async function showCredits() {
+  let backend = null;
+  try { backend = (await (await fetch("/api/info")).json()).backend; } catch {}
+  document.querySelectorAll("[data-backend]").forEach(el => {
+    el.hidden = backend !== null && el.dataset.backend !== backend;
+  });
+}
+
 // ---------- init ----------
+showCredits();
 renderHistory();
 const init = new URLSearchParams(location.search);
 for (const k of SEARCH_OPTIONS)

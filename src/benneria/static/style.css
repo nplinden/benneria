@@ -90,7 +90,9 @@ ol.senses li { margin: 3px 0; }
 .history a { background: var(--chip); padding: 2px 8px; border-radius: 6px; cursor: pointer;
              font-family: serif; font-size: 15px; color: var(--ink); }
 [dir=rtl], .he { font-family: "SBL Hebrew", "Ezra SIL", "David", serif; }
-footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 16px; }
+footer p { margin: 0 auto; max-width: 720px; line-height: 1.5; }
+footer a { color: inherit; }
 
 /* Local backend cards */
 .forms { font-size: 14px; margin: 4px 0 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }

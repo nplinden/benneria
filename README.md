@@ -92,4 +92,9 @@ Attribution:
   https://github.com/openscriptures/morphhb ([CC BY 4.0](http://creativecommons.org/licenses/by/4.0/)),
   based on the public-domain Westminster Leningrad Codex.
 
-Both are transformed here: converted from XML to SQLite, joined, and rendered to HTML.
+Both are transformed here: converted from XML to SQLite, joined, and rendered to HTML. See
+[DATA_LICENSE.md](DATA_LICENSE.md) for the full notice, the source commits and the list of changes.
+The app's footer shows this attribution when it runs with the local backend, and Sefaria's
+credit with the Sefaria backend.
+
+The app's own code has no license yet.

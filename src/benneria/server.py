@@ -60,6 +60,10 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 status, body = fetch_words(word, qs)
             return self._send(status, body, "application/json; charset=utf-8")
+        if parsed.path == "/api/info":
+            # Which backend is running, so the page can show the matching credits.
+            body = json.dumps({"backend": "local" if self.server.lexicon else "sefaria"}).encode()
+            return self._send(200, body, "application/json")
         if parsed.path == "/api/entry":
             # Cross-references between entries: ?id=, ?bdb= or ?strong=. Local backend only.
             qs = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}

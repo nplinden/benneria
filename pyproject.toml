@@ -1,12 +1,14 @@
 [project]
 name = "benneria"
 version = "0.1.0"
-description = "A small web dictionary for Hebrew and Aramaic, backed by the Sefaria Lexicon API"
+description = "A small web dictionary for Hebrew and Aramaic, backed by the Sefaria Lexicon API or local Open Scriptures data"
 readme = "README.md"
 authors = [
     { name = "Nicolas Linden", email = "nicolas@nlinden.com" }
 ]
 requires-python = ">=3.9"
+# Ships with the package because the package includes the lexicon database.
+license-files = ["DATA_LICENSE.md"]
 dependencies = []
 
 [project.scripts]

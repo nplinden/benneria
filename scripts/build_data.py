@@ -166,11 +166,11 @@ def xml_text(s):
     return html.escape(re.sub(r"\s+", " ", s or ""), quote=False)
 
 
-def render_children(el, render_el):
-    parts = [xml_text(el.text)]
+def render_children(el, render_el, text=xml_text):
+    parts = [text(el.text)]
     for child in el:
         parts.append(render_el(child))
-        parts.append(xml_text(child.tail))
+        parts.append(text(child.tail))
     return "".join(parts)
 
 
@@ -234,11 +234,80 @@ def normalize_bdb_ref(r):
     return osis, title
 
 
+# Abbreviations in BDB's prose that get a tooltip. Only unambiguous ones: left out are those
+# with two uses ("v." see/verse, "c." with/about, "acc." accusative/according to, "gen.",
+# "conj." conjunction/conjecture, "loc.", "Sam.", "contr."), single letters, and words that are
+# also ordinary English ("sub", "term."). See reports/bdb-abbreviations.md for the survey.
+BDB_ABBREVIATIONS = {
+    # cross-references and Latin
+    "i.e.": "id est: that is", "foll.": "following", "etc.": "et cetera", "cf.": "confer: compare",
+    "id.": "idem: the same", "al.": "and others, and elsewhere", "q.v.": "quod vide: which see",
+    "infr.": "infra: below, later in the lexicon", "supr.": "supra: above, earlier in the lexicon",
+    "sq.": "followed by", "viz.": "videlicet: namely", "sc.": "scilicet: that is to say, supply",
+    "l.c.": "loco citato: in the place cited", "exc.": "except", "wh.": "which",
+    "elsewh.": "elsewhere", "ref.": "reference", "comp.": "compare", "rd.": "read (proposed reading)",
+    "txt.": "text", "err.": "error", "abbrev.": "abbreviation",
+    # hedging and frequency
+    "dub.": "dubious, doubtful", "prob.": "probably", "perh.": "perhaps", "appar.": "apparently",
+    "usu.": "usual, usually", "esp.": "especially", "specif.": "specifically", "spec.": "specifically",
+    "oft.": "often", "poss.": "possibly", "alw.": "always", "sts.": "sometimes",
+    "sim.": "similar, similarly", "opp.": "opposite, as opposed to",
+    # grammar
+    "pl.": "plural", "Pl.": "plural", "sg.": "singular", "du.": "dual", "fem.": "feminine",
+    "ms.": "masculine singular", "fs.": "feminine singular", "coll.": "collective",
+    "n.coll.": "collective noun", "subst.": "substantive (noun)", "adj.": "adjective",
+    "adv.": "adverb", "prep.": "preposition", "vb.": "verb", "n.pr.": "proper name",
+    "art.": "article", "cstr.": "construct state", "abs.": "absolute", "sf.": "suffix",
+    "accus.": "accusative", "subj.": "subject", "obj.": "object", "pred.": "predicate",
+    "pers.": "person", "trans.": "transitive", "intrans.": "intransitive", "intr.": "intransitive",
+    "pass.": "passive", "reflex.": "reflexive", "refl.": "reflexive", "recipr.": "reciprocal",
+    "causat.": "causative", "intens.": "intensive", "denom.": "denominative (formed from a noun)",
+    "deriv.": "derivative", "der.": "derived, derives", "Inf.": "infinitive", "inf.": "infinitive",
+    "Pt.": "participle", "pt.": "participle", "Pi.": "Piel", "Hiph.": "Hiphil", "Pa.": "Pael",
+    "abstr.": "abstract", "concr.": "concrete", "emph.": "emphatic", "instr.": "instrument, instrumental",
+    "phr.": "phrase",
+    # meaning, style and origin
+    "fig.": "figurative, figuratively", "Fig.": "figurative, figuratively", "lit.": "literally",
+    "prop.": "properly (the root sense); after a scholar's name: proposes", "poet.": "poetic", "mng.": "meaning",
+    "orig.": "originally", "fr.": "from", "metaph.": "metaphor, metaphorically",
+    "techn.": "technical", "onomatop.": "onomatopoeic", "etym.": "etymology",
+    "identif.": "identification, identified", "interpr.": "interpretation",
+    "expl.": "explanation, explained", "contemp.": "contemporary", "postBHeb.": "post-Biblical Hebrew",
+    # languages and peoples
+    "Ar.": "Arabic", "Arab.": "Arabic", "Aram.": "Aramaic", "As.": "Assyrian", "Assyr.": "Assyrian",
+    "Eth.": "Ethiopic", "Syr.": "Syriac", "Heb.": "Hebrew", "Sab.": "Sabaean", "Ph.": "Phoenician",
+    "Gk.": "Greek", "Talm.": "Talmud, Talmudic", "Pers.": "Persian", "Bab.": "Babylonian",
+    # places, people and directions
+    "Isr.": "Israel", "Benj.": "Benjamin", "Jerus.": "Jerusalem", "Ephr.": "Ephraim",
+    "Zerub.": "Zerubbabel", "Sol.": "Solomon", "Levit.": "Levitical", "mt.": "mount, mountain",
+    "NE.": "north-east", "SE.": "south-east", "SW.": "south-west", "B.C.": "before Christ",
+}
+_ABBR = re.compile(
+    r"(?<![A-Za-z.])(" + "|".join(re.escape(a) for a in sorted(BDB_ABBREVIATIONS, key=len, reverse=True))
+    + r")(?![A-Za-z])"
+    r"|(?:(?<=\d)|(?<=\d ))(t\.)(?![A-Za-z])")  # "+ 2t." or "+ 40 t." = and that many more times
+
+
+def bdb_text(s):
+    """xml_text, plus a tooltip (<abbr title>) on BDB's abbreviations. The text is already
+    HTML-escaped, and the abbreviations are plain ASCII, so matching it is safe."""
+    def tip(m):
+        word = m.group(1) or m.group(2)
+        title = BDB_ABBREVIATIONS.get(word) or "times (after a number)"
+        return f'<abbr title="{attr(title)}">{word}</abbr>'
+    return _ABBR.sub(tip, xml_text(s))
+
+
+# BDB elements whose text is not prose: Hebrew words, other languages, references, and parts
+# of speech (which have their own tooltip).
+BDB_NO_ABBR = {"w", "foreign", "ref", "pos"}
+
+
 def render_bdb(el):
     """BDB XML element to HTML. Bible references are plain text, with the verse in a tooltip
-    and its OSIS id in data-ref."""
+    and its OSIS id in data-ref. Abbreviations in the prose get a tooltip (BDB_ABBREVIATIONS)."""
     tag = local(el.tag)
-    inner = render_children(el, render_bdb)
+    inner = render_children(el, render_bdb, xml_text if tag in BDB_NO_ABBR else bdb_text)
     if tag == "w":
         hom = f'<span class="hom">{attr(el.get("mod"))}</span> ' if el.get("mod") else ""
         if el.get("src"):
@@ -316,12 +385,49 @@ def parse_lexical_index(path):
     return entries, related
 
 
-def parse_bdb(path):
+def head_pos_pattern(root):
+    """Matches a part-of-speech abbreviation at the start of the text after an entry's headword.
+    The vocabulary is what BDB itself tags as <pos> at least 3 times ("n.[m.]", "vb", "pl", …)."""
+    counts = collections.Counter(re.sub(r"\s+", " ", p.text or "").strip().rstrip(".")
+                                 for p in root.iter(LEX_NS + "pos"))
+    vocab = sorted((v for v, n in counts.items() if v and n >= 3), key=len, reverse=True)
+    return re.compile(r"^([\]\s,\d]*)(" + "|".join(re.escape(v) for v in vocab) + r")(?=[.,;:\s)]|$)")
+
+
+def tag_head_pos(entry, pattern):
+    """Some entries leave the part of speech after the headword untagged ("<w>…</w> n.[m.] <pos>du</pos>"),
+    so it gets no tooltip. Wrap it in <pos> when it directly follows the headword(s), the place BDB
+    gives the part of speech. Only that position is used: elsewhere the same abbreviations occur
+    in prose ("conj." for conjecture, "ad loc."). Returns True when a tag was added."""
+    kids = list(entry)
+    i = 0
+    # Several headwords may lead the entry, separated by commas or brackets.
+    while (i + 1 < len(kids) and kids[i].tag == LEX_NS + "w" and kids[i + 1].tag == LEX_NS + "w"
+           and re.fullmatch(r"[\s,\[\]]*", kids[i].tail or "")):
+        i += 1
+    if not kids or kids[i].tag != LEX_NS + "w":
+        return False
+    m = pattern.match(kids[i].tail or "")
+    if not m:
+        return False
+    tail = kids[i].tail
+    pos = ET.Element(LEX_NS + "pos")
+    pos.text = m.group(2)
+    pos.tail = tail[m.end():]
+    kids[i].tail = m.group(1)
+    entry.insert(i + 1, pos)
+    return True
+
+
+def parse_bdb(path, stats):
     rows = []
     root = ET.parse(path).getroot()
+    pattern = head_pos_pattern(root)
     for part in root.iter(LEX_NS + "part"):
         lang = part.get(XML_LANG)
         for entry in part.iter(LEX_NS + "entry"):
+            if tag_head_pos(entry, pattern):
+                stats["bdb parts of speech tagged after the headword"] += 1
             # Every entry's <status p="..."> gives its BDB page; <page> markers are sparse.
             status = entry.find(LEX_NS + "status")
             p = status.get("p") if status is not None else None
@@ -437,12 +543,12 @@ def build(sources, output):
     print("Parsing HebrewLexicon")
     entries, related = parse_lexical_index(lex / "LexicalIndex.xml")
     load_bdb_pos(lex / "BDBPartsOfSpeech.xml")
-    bdb = parse_bdb(lex / "BrownDriverBriggs.xml")
+    stats = collections.Counter()
+    bdb = parse_bdb(lex / "BrownDriverBriggs.xml", stats)
     strongs = parse_strongs(lex / "HebrewStrong.xml")
     aug = parse_aug(lex / "AugIndex.xml")
 
     print("Parsing morphhb")
-    stats = collections.Counter()
     resolver = LemmaResolver(entries, aug)
     forms = list(parse_morphhb([sources / "morphhb" / f"{b}.xml" for b in MORPHHB_BOOKS], resolver, stats))
 
@@ -479,7 +585,9 @@ def build(sources, output):
             1 for e in entries if e["strong"] and e["strong"].isdigit() and e["strong"] not in strong_numbers),
         "aug numbers pointing to unknown entries": sum(1 for _, eid in aug if eid not in entry_ids),
         "related links to unknown entries": sum(1 for _, rid, _ in related if rid not in entry_ids),
+        "bdb parts of speech tagged after the headword": stats["bdb parts of speech tagged after the headword"],
         "bdb verse references": sum(r[-1].count('class="ref"') for r in bdb),
+        "bdb abbreviations with a tooltip": sum(r[-1].count("<abbr ") for r in bdb),
         "bdb verse references that could not be read": sum(r[-1].count('<span class="ref">') for r in bdb),
     }
     meta = {

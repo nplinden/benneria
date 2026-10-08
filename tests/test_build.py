@@ -101,3 +101,44 @@ def resolver(build_data):
 ])
 def test_lemma_resolver(resolver, lemma, lang, ids, prefixes):
     assert resolver.resolve(lemma, lang) == (ids, prefixes)
+
+
+def test_tag_head_pos(build_data):
+    import re
+    pattern = re.compile(r"^([\]\s,\d]*)(n\.\[m\.\]|prep|conj|du)(?=[.,;:\s)]|$)")
+
+    def tagged(xml):
+        el = ET.fromstring(f'<entry xmlns="{NS}">{xml}</entry>')
+        changed = build_data.tag_head_pos(el, pattern)
+        return changed, [(c.tag.split("}")[1], c.text, c.tail) for c in el]
+
+    # Untagged right after the headword: wrapped in <pos>, the rest of the text kept.
+    changed, kids = tagged("<w>שְׁפַתַּיִם</w> n.[m.] <pos>du</pos>.: prob.")
+    assert changed and kids[:2] == [("w", "שְׁפַתַּיִם", " "), ("pos", "n.[m.]", " ")]
+    # After a bracketed headword and an occurrence count.
+    changed, kids = tagged("[<w>קֳדָם</w>] 42 prep. <def>before</def>")
+    assert changed and kids[1] == ("pos", "prep", ". ")
+    # Already tagged, or the abbreviation is elsewhere in prose: left alone.
+    assert not tagged("<w>אֹפֶס</w> <pos>n.[m.]</pos> only in the <pos>du</pos>.")[0]
+    assert not tagged("<w>א</w> (√ of foll.; Thes conj. orig. mng.)")[0]
+
+
+def test_bdb_abbreviation_tooltips(build_data):
+    text = build_data.bdb_text
+    assert text("prob. = x, infr., q.v.;") == (
+        '<abbr title="probably">prob.</abbr> = x, '
+        '<abbr title="infra: below, later in the lexicon">infr.</abbr>, '
+        '<abbr title="quod vide: which see">q.v.</abbr>;')
+    assert '<abbr title="times (after a number)">t.</abbr>' in text("+ 2t.; + 40 t.")
+    assert text("+ 40 t.").count("<abbr") == 1
+    # Ambiguous abbreviations, parts of longer words and plain words are left alone.
+    assert "<abbr" not in text("v. also; acc. to; Thes conj.; ad loc.; the art of")
+    assert text("c. art.") == 'c. <abbr title="article">art.</abbr>'  # "c." is ambiguous, "art." is not
+    assert "<abbr" not in text("probably, cfx.")
+
+
+def test_bdb_abbreviations_skip_hebrew_refs_and_pos(build_data):
+    el = ET.fromstring(
+        f'<entry xmlns="{NS}"><w>prob.</w> <pos>pl</pos>. <ref r="Gen.1.1">cf. 1:1</ref> see cf. here</entry>')
+    html = build_data.render_bdb(el)
+    assert html.count("<abbr") == 1 and 'see <abbr title="confer: compare">cf.</abbr> here' in html

@@ -98,6 +98,15 @@ def test_never_split(lexicon):
     assert lexicon.search("בְּרֵאשִׁית בָּרָא אֱלֹהִים", never_split=True)["results"] == []
 
 
+def test_input_limits(lexicon):
+    from benneria.local import MAX_CHARS, MAX_WORDS, InputTooLong
+    lexicon.search(" ".join(["שמר"] * MAX_WORDS))  # at the limit: fine
+    with pytest.raises(InputTooLong):
+        lexicon.search(" ".join(["שמר"] * (MAX_WORDS + 1)))
+    with pytest.raises(InputTooLong):
+        lexicon.search("א" * (MAX_CHARS + 1))
+
+
 def test_unknown_book(lexicon):
     with pytest.raises(RefError):
         lexicon.search("בָּרָא", lookup_ref="Matthew 1:1")

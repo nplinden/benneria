@@ -35,6 +35,17 @@ clients, at a few tens of milliseconds each, with memory steady at about 190 MB 
 app is a standard WSGI application, `benneria.app:app`, so other WSGI servers (e.g. waitress on
 Windows) can run it too.
 
+Limits and caching:
+
+- A lookup is limited to 20 words and 300 characters (`MAX_WORDS`, `MAX_CHARS` in `local.py`);
+  longer input gets a 400. The slowest lookup allowed takes about 25 ms.
+- API answers are cacheable for a day (`Cache-Control: public, max-age=86400`), with an ETag
+  that changes whenever the database or the search code changes. A request sent with the
+  current ETag gets `304 Not Modified` without the search running. So after a deploy, browsers
+  may keep showing their cached answer to a lookup for up to a day.
+- The page and its static files are revalidated on every load (`no-cache` with an ETag), so
+  changes to them show immediately. Errors are never cached.
+
 Options:
 
 | Flag     | Default     | Description                    |

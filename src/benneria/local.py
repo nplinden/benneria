@@ -32,6 +32,14 @@ DB_PATH = files("benneria") / "data" / "lexicon.sqlite"
 # Word separators in a typed phrase: spaces, maqaf, sof pasuq, paseq, colon, period.
 SPLIT = re.compile(r"[\s:\u05be\u05c3\u05c0.]+")
 HAS_POINTS = re.compile("[\u0591-\u05c7]")
+# Input limits. Phrase splitting looks up every run of consecutive words, about n²/2 lookups for
+# n words, so unbounded input would let one request tie up a worker.
+MAX_WORDS = 20
+MAX_CHARS = 300
+
+
+class InputTooLong(ValueError):
+    pass
 
 
 class LocalLexicon:
@@ -52,12 +60,15 @@ class LocalLexicon:
     def search(self, word, lookup_ref=None, always_consonants=False, always_split=False,
                never_split=False, strip_prefixes=True):
         """Returns {"query", "ref", "steps", "results"}; results are ranked entries.
-        strip_prefixes=False skips step 3 (matching a word without its prefixes)."""
+        strip_prefixes=False skips step 3 (matching a word without its prefixes).
+        Raises InputTooLong beyond MAX_WORDS words or MAX_CHARS characters."""
         word = re.sub(r"\s+", " ", word or "").strip()
+        words = [w for w in SPLIT.split(word) if w]
+        if len(word) > MAX_CHARS or len(words) > MAX_WORDS:
+            raise InputTooLong(f"Input too long: at most {MAX_WORDS} words and {MAX_CHARS} characters")
         ref = to_osis(lookup_ref) if lookup_ref else None
         opts = (always_consonants, strip_prefixes)
         matches, steps = self._single(word, ref, *opts)
-        words = [w for w in SPLIT.split(word) if w]
         if len(words) > 1 and not never_split and (not matches or always_split):
             for gram in _ngrams(words):
                 found, gram_steps = self._single(gram, ref, *opts)

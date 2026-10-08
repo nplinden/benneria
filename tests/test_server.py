@@ -48,6 +48,33 @@ def test_entry(client):
     assert get(client, "/api/entry", id="nbf", bdb="x")[0] == 400
 
 
-def test_responses_are_not_cached(client):
-    assert client.get("/api/lookup", query_string={"word": "שמר"}).headers["Cache-Control"] == "no-store"
-    assert client.get("/static/app.js").headers["Cache-Control"] == "no-store"
+def test_api_answers_are_cacheable_and_revalidate(client):
+    from benneria.app import API_MAX_AGE, API_VERSION
+    for path, params in [("/api/lookup", {"word": "שמר"}), ("/api/entry", {"strong": "1254"})]:
+        r = client.get(path, query_string=params)
+        assert r.status_code == 200
+        assert r.headers["ETag"] == f'"{API_VERSION}"'
+        assert r.cache_control.public and r.cache_control.max_age == API_MAX_AGE
+        again = client.get(path, query_string=params, headers={"If-None-Match": r.headers["ETag"]})
+        assert again.status_code == 304 and again.get_data() == b""
+        stale = client.get(path, query_string=params, headers={"If-None-Match": '"old-version"'})
+        assert stale.status_code == 200
+
+
+def test_errors_are_not_cached(client):
+    assert client.get("/api/lookup").headers["Cache-Control"] == "no-store"
+    assert client.get("/api/entry").headers["Cache-Control"] == "no-store"
+
+
+def test_static_files_revalidate(client):
+    for path in ("/", "/static/app.js"):
+        r = client.get(path)
+        assert r.headers["Cache-Control"] == "no-cache" and r.headers.get("ETag")
+        assert client.get(path, headers={"If-None-Match": r.headers["ETag"]}).status_code == 304
+
+
+def test_input_too_long(client):
+    status, _, body = get(client, "/api/lookup", word=" ".join(["שמר"] * 21))
+    assert status == 400 and "Input too long" in json.loads(body)["error"]
+    assert get(client, "/api/lookup", word="א" * 301)[0] == 400
+    assert get(client, "/api/lookup", word=" ".join(["שמר"] * 20))[0] == 200

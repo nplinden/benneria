@@ -93,20 +93,7 @@ function renderResults() {
   $("#optsCount").hidden = !hidden;
   $("#optsCount").textContent = hidden ? `Showing ${shown.length} of ${lastResults.length} entries; ${hidden} hidden by the filters in Options.` : "";
   out.innerHTML = shown.map(renderEntry).join("") ||
-    `<div class="status">No entries match the result filters. Adjust them in Options (top right).</div>`;
-}
-
-// ---------- history ----------
-// The storage key predates the rename to Benneria; kept so existing history survives.
-function getHistory() { try { return JSON.parse(localStorage.getItem("sefaria-dict-history") || "[]"); } catch { return []; } }
-function pushHistory(w) {
-  const h = [w, ...getHistory().filter(x => x !== w)].slice(0, 12);
-  try { localStorage.setItem("sefaria-dict-history", JSON.stringify(h)); } catch {}
-  renderHistory();
-}
-function renderHistory() {
-  const h = getHistory();
-  $("#history").innerHTML = h.length ? "Recent: " + h.map(w => `<a data-word="${esc(w)}">${esc(w)}</a>`).join("") : "";
+    `<div class="status">No entries match the result filters. Adjust them in Options (the gear next to the search button).</div>`;
 }
 
 // ---------- search ----------
@@ -123,9 +110,8 @@ async function lookup(word, push = true) {
     if (v) params.set(k, v);
   }
   if (push) history.pushState({ word }, "", "?" + params.toString());
-  const ok = await fetchResults("/api/lookup?" + params.toString(), `No dictionary entries found for
+  await fetchResults("/api/lookup?" + params.toString(), `No dictionary entries found for
     <span class="he">${esc(word)}</span>. Try turning on “Ignore vowels” or “Look up each word”.`);
-  if (ok) pushHistory(word);
 }
 
 // Opens entries named by a cross-reference (an entry id, BDB id or Strong's number).
@@ -137,6 +123,7 @@ async function openEntry(kind, value, push = true) {
 }
 
 async function fetchResults(url, emptyMessage) {
+  document.body.classList.remove("home");
   out.innerHTML = `<div class="status">Searching…</div>`;
   lastResults = [];
   renderFilters();
@@ -184,12 +171,12 @@ function route(push) {
 window.addEventListener("popstate", () => route(false));
 
 function showWelcome() {
+  document.body.classList.add("home");
   lastResults = [];
   $("#q").value = "";
   renderFilters();
   $("#optsCount").hidden = true;
-  out.innerHTML = `<div class="status">Enter a Hebrew or Aramaic word to search the dictionaries.<br>
-    Try ${["תורה","שלום","ראה","אמר"].map(w => `<a data-word="${w}" href="#" class="he">${w}</a>`).join(" · ")}</div>`;
+  out.innerHTML = "";
 }
 
 // ---------- options dialog ----------
@@ -203,21 +190,8 @@ $("#lookup_ref").addEventListener("keydown", (ev) => {
   if (ev.key === "Enter" && $("#q").value.trim()) { ev.preventDefault(); lookup($("#q").value); }
 });
 
-// ---------- Hebrew keyboard ----------
-const letters = "אבגדהוזחטיכךלמםנןסעפףצץקרשת".split("").concat(["־", "⌫", "␣"]);
-$("#kb").innerHTML = letters.map(l => `<button type="button" data-k="${l}">${l}</button>`).join("");
-$("#kb").addEventListener("click", (ev) => {
-  const k = ev.target.dataset.k; if (!k) return;
-  const q = $("#q");
-  if (k === "⌫") q.value = q.value.slice(0, -1);
-  else if (k === "␣") q.value += " ";
-  else q.value += k;
-  q.focus();
-});
-$("#kbBtn").addEventListener("click", () => $("#kb").classList.toggle("show"));
 
 // ---------- init ----------
-renderHistory();
 const init = new URLSearchParams(location.search);
 for (const k of SEARCH_OPTIONS)
   if (init.get(k)) document.getElementById(k).value = init.get(k);

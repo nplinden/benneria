@@ -6,23 +6,15 @@
 <title>Benneria</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-<header>
-  <button type="button" class="ghost options-btn" id="optsBtn" aria-haspopup="dialog" aria-controls="opts">⚙ Options</button>
-  <h1>Benneria</h1>
-  <p>Brown-Driver-Briggs · Strong's · the Hebrew Bible's word forms, from Open Scriptures</p>
-</header>
+<!-- "home": nothing searched yet, so the search box sits in the middle of the page. -->
+<body class="home">
 <main>
   <form id="f" autocomplete="off">
     <div class="row">
       <input id="q" type="text" dir="auto" placeholder="Type a Hebrew or Aramaic word… e.g. תורה" autofocus>
-      <button type="submit">Look up</button>
+      <button type="submit" class="icon-btn" aria-label="Look up" title="Look up"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.4" y1="15.4" x2="21" y2="21"/></svg></button>
+      <button type="button" class="ghost icon-btn" id="optsBtn" aria-haspopup="dialog" aria-controls="opts" aria-label="Options" title="Options"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
-    <div class="toolbar">
-      <button type="button" class="ghost" id="kbBtn">א Keyboard</button>
-    </div>
-    <div class="keyboard" id="kb"></div>
-    <div class="history" id="history"></div>
   </form>
   <p class="results-count" id="optsCount" hidden></p>
   <div id="out"></div>

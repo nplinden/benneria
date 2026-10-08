@@ -10,14 +10,13 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink);
-       font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-header { padding: 28px 16px 8px; text-align: center; }
-header h1 { margin: 0; font-family: Georgia, "Times New Roman", serif;
-            font-weight: 500; letter-spacing: .5px; color: var(--accent); }
-header p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
-main { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+       font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+       min-height: 100vh; display: flex; flex-direction: column; }
+main { width: 100%; max-width: 860px; margin: 0 auto; padding: 0 16px 60px; flex: 1 0 auto; }
+/* Before the first search, the search box is centered vertically; results push it to the top. */
+body.home main { display: flex; flex-direction: column; justify-content: center; }
 form { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-       padding: 16px; margin: 18px 0; position: sticky; top: 8px; z-index: 5;
+       padding: 16px; margin: 18px 0;
        box-shadow: 0 4px 20px rgba(0,0,0,.05); }
 .row { display: flex; gap: 8px; }
 input[type=text] { flex: 1; min-width: 0; font-size: 20px; padding: 10px 14px;
@@ -29,9 +28,11 @@ button { font: inherit; padding: 10px 18px; border-radius: 10px; border: 0;
          background: var(--accent); color: var(--card); cursor: pointer; font-weight: 600; }
 button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line);
                font-weight: 400; padding: 6px 10px; font-size: 13px; }
-header { position: relative; }
-.options-btn { position: absolute; top: 16px; right: 16px; }
-@media (max-width: 520px) { header { padding-top: 56px; } }  /* keep the button clear of the title */
+/* Icon-only buttons: line icons drawn in the button's text colour. */
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+.icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2;
+        stroke-linecap: round; stroke-linejoin: round; }
+.row .icon-btn { padding: 0 16px; }
 .opts-dialog { width: min(720px, calc(100% - 32px)); max-height: calc(100% - 64px); padding: 16px 20px 20px;
                border: 1px solid var(--line); border-radius: 14px; background: var(--card);
                color: var(--muted); font-size: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
@@ -59,12 +60,6 @@ header { position: relative; }
 .opts-grid select, .opts-grid input { font: inherit; font-size: 14px; height: 34px; flex: none;
              padding: 0 8px; border-radius: 8px; width: 100%;
              border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-.keyboard { display: none; flex-wrap: wrap; gap: 4px; margin-top: 10px; direction: rtl; }
-.keyboard.show { display: flex; }
-.keyboard button { background: var(--chip); color: var(--ink); padding: 6px 0; width: 38px;
-                   font-family: serif; font-size: 18px; font-weight: 400; }
-.toolbar { display: flex; justify-content: flex-end; align-items: center;
-           flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; }
 .filters label { background: var(--chip); border-radius: 999px; padding: 3px 10px;
                  font-size: 13px; cursor: pointer; user-select: none; }
@@ -85,10 +80,6 @@ header { position: relative; }
 .refs a, .entry a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .entry a:hover { text-decoration: underline; }
 .refs { font-size: 13px; color: var(--muted); margin-top: 8px; }
-.history { font-size: 13px; color: var(--muted); margin-top: 8px; display: flex;
-           flex-wrap: wrap; gap: 6px; align-items: center; }
-.history a { background: var(--chip); padding: 2px 8px; border-radius: 6px; cursor: pointer;
-             font-family: serif; font-size: 15px; color: var(--ink); }
 [dir=rtl], .he { font-family: "SBL Hebrew", "Ezra SIL", "David", serif; }
 footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 16px; }
 footer p { margin: 0 auto; max-width: 720px; line-height: 1.5; }

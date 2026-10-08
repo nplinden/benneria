@@ -1,4 +1,4 @@
-# Sefaria Dictionary
+# Benneria
 
 A small web dictionary for Hebrew and Aramaic words. It serves a single-page UI
 and proxies lookups to the [Sefaria](https://www.sefaria.org) Lexicon API
@@ -10,11 +10,11 @@ Uses only the Python standard library.
 ## Run
 
 ```sh
-uv run sefaria                                # http://localhost:8000
-uv run sefaria --port 9000 --host 0.0.0.0 --open
+uv run benneria                                # http://localhost:8000
+uv run benneria --port 9000 --host 0.0.0.0 --open
 ```
 
-Without uv: `PYTHONPATH=src python -m sefaria`.
+Without uv: `PYTHONPATH=src python -m benneria`.
 
 Options:
 
@@ -39,7 +39,13 @@ Binding to `0.0.0.0` lets anyone on your network use the server as a proxy to Se
 
 ## Layout
 
-- `src/sefaria/app.py`: HTTP server, Sefaria proxy with an in-memory cache, and the embedded HTML/JS page
-- `src/sefaria/__init__.py`: exposes `main`, the `sefaria` console script
+- `src/benneria/lookup.py`: word lookup, a proxy to the Sefaria API with an in-memory cache
+- `src/benneria/server.py`: HTTP server and command-line options; serves `static/` and `/api/lookup`
+- `src/benneria/static/`: the frontend
+  - `index.html`: page markup
+  - `style.css`: styles, including dark mode
+  - `labels.js`: display names for morphology and language codes
+  - `app.js`: rendering, filters, search, history and the Hebrew keyboard
+- `src/benneria/__init__.py`: exposes `main`, the `benneria` console script
 
 Dictionary data comes from Sefaria; each lexicon keeps its own license and attribution.

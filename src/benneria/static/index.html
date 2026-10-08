@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benneria</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Benneria</h1>
+  <p>Jastrow · BDB · Strong's · Klein, via the Sefaria Lexicon API</p>
+</header>
+<main>
+  <form id="f" autocomplete="off">
+    <div class="row">
+      <input id="q" type="text" dir="auto" placeholder="Type a Hebrew or Aramaic word… e.g. תורה" autofocus>
+      <button type="submit">Look up</button>
+    </div>
+    <div class="toolbar">
+      <button type="button" class="ghost" id="kbBtn">א Keyboard</button>
+    </div>
+    <div class="keyboard" id="kb"></div>
+    <details class="opts" id="opts" open>
+      <summary>Options<span id="optsCount"></span></summary>
+      <section class="opt-group" id="apiGroup">
+        <h3>Sefaria API <span>sent with each lookup; changing one re-runs the search</span></h3>
+        <div class="opts-grid">
+          <label title="lookup_ref: rank entries for the word as it appears in this text">Context reference
+            <input id="lookup_ref" type="text" placeholder="e.g. Leviticus 19.3" dir="ltr">
+          </label>
+          <label title="always_consonants: match on consonants only">Ignore vowels
+            <select id="always_consonants"><option value="">Default</option><option value="1" selected>Yes</option><option value="0">No</option></select>
+          </label>
+          <label title="always_split: also look up parts of the input">Substring matches
+            <select id="always_split"><option value="">Default</option><option value="1">Yes</option><option value="0">No</option></select>
+          </label>
+          <label title="never_split: look up the input exactly as typed">Exact input only
+            <select id="never_split"><option value="">Default</option><option value="1">Yes</option><option value="0" selected>No</option></select>
+          </label>
+        </div>
+      </section>
+      <section class="opt-group" id="filterGroup">
+        <h3>Result filters <span>applied in this app to the entries Sefaria returns</span></h3>
+        <p class="filter-empty" id="filtersEmpty">Run a search to filter its results.</p>
+        <div class="filter-row" id="lexRow" hidden>
+          <span class="filter-label">Dictionary</span>
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="filter-row" id="morphRow" hidden>
+          <span class="filter-label" title="Only applies to BDB Augmented Strong entries">Morph <small>BDB Aug. Strong</small></span>
+          <div class="filters" id="morphFilters"></div>
+        </div>
+      </section>
+    </details>
+    <div class="history" id="history"></div>
+  </form>
+  <div id="out"></div>
+</main>
+<footer>Data from <a href="https://www.sefaria.org" target="_blank" rel="noopener">Sefaria</a>. Each dictionary keeps its own license and attribution.</footer>
+
+<script src="/static/labels.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

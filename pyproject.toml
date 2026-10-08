@@ -1,5 +1,5 @@
 [project]
-name = "sefaria"
+name = "benneria"
 version = "0.1.0"
 description = "A small web dictionary for Hebrew and Aramaic, backed by the Sefaria Lexicon API"
 readme = "README.md"
@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dependencies = []
 
 [project.scripts]
-sefaria = "sefaria:main"
+benneria = "benneria:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]

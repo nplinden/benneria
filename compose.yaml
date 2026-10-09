@@ -1,17 +1,18 @@
 # Sample Docker Compose setup for Benneria.
 #
-#   docker compose up -d          # build the image and start it: http://localhost:1525
+# Runs the latest image published by CI on the GitHub Container Registry.
+#
+#   docker compose up -d          # start it: http://localhost:1525
 #   BENNERIA_PORT=8080 docker compose up -d   # same, on another port of this machine
+#   docker compose pull && docker compose up -d   # update to the newest published image
 #   docker compose logs -f        # follow the request log
 #   docker compose down           # stop and remove the container
 #
-# To run the image published by CI instead of building it here, replace "build: ." with
-#   image: ghcr.io/<owner>/benneria:latest
+# To run your local checkout instead, replace the "image:" line with "build: .".
 
 services:
   benneria:
-    build: .
-    image: benneria:latest
+    image: ghcr.io/nplinden/benneria:latest
     ports:
       - "${BENNERIA_PORT:-1525}:1525"
     environment:

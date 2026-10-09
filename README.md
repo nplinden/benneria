@@ -47,9 +47,15 @@ The image (about 150 MB) runs gunicorn with `gunicorn.conf.py` as an unprivilege
 Python 3.14 with the dependencies pinned in `uv.lock`. The lexicon database is inside the
 package, so it needs no volume or network, and it has a health check on the API.
 
-`compose.yaml` is a sample Docker Compose setup: `docker compose up -d` builds the image and
-starts it on port 1525 (or `BENNERIA_PORT`), restarting it automatically, with a read-only
-filesystem.
+CI publishes the image as `ghcr.io/nplinden/benneria` (`latest` follows the main branch):
+
+```sh
+docker run -p 1525:1525 ghcr.io/nplinden/benneria:latest
+```
+
+`compose.yaml` is a sample Docker Compose setup for that image: `docker compose up -d` starts it
+on port 1525 (or `BENNERIA_PORT`), restarting it automatically, with a read-only filesystem.
+`docker compose pull` fetches a newer published image.
 
 Limits and caching:
 

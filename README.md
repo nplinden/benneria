@@ -154,4 +154,5 @@ Both are transformed here: converted from XML to SQLite, joined, and rendered to
 [DATA_LICENSE.md](DATA_LICENSE.md) for the full notice, the source commits and the list of
 changes. The app's footer shows this attribution.
 
-The app's own code has no license yet.
+The app's own code is released under the [MIT License](LICENSE). The lexicon database keeps its
+own license, CC BY 4.0, described above and in [DATA_LICENSE.md](DATA_LICENSE.md).

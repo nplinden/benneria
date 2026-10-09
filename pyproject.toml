@@ -7,8 +7,9 @@ authors = [
     { name = "Nicolas Linden", email = "nicolas@nlinden.com" }
 ]
 requires-python = ">=3.9"
-# Ships with the package because the package includes the lexicon database.
-license-files = ["DATA_LICENSE.md"]
+# The code is MIT; the lexicon database in the package is CC BY 4.0 (DATA_LICENSE.md).
+license = "MIT"
+license-files = ["LICENSE", "DATA_LICENSE.md"]
 dependencies = [
     "flask>=3.1.3",
     "gunicorn>=23.0.0 ; sys_platform != 'win32'",

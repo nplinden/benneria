@@ -20,7 +20,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 # Then the app itself, installed as a regular (non-editable) package with its static files and
 # database.
-COPY README.md DATA_LICENSE.md ./
+COPY README.md LICENSE DATA_LICENSE.md ./
 COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
 
@@ -30,7 +30,7 @@ FROM python:3.14-slim
 RUN useradd --system --create-home --uid 10001 benneria
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
-COPY gunicorn.conf.py DATA_LICENSE.md ./
+COPY gunicorn.conf.py LICENSE DATA_LICENSE.md ./
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \

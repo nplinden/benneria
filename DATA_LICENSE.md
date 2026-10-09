@@ -1,7 +1,7 @@
 # Data license
 
-This notice covers `src/benneria/data/lexicon.sqlite`, the lexicon database the app's local
-backend uses. It does not cover the app's code.
+This notice covers `src/benneria/data/lexicon.sqlite`, the lexicon database the app uses. It
+does not cover the app's code, which is under the MIT License (see `LICENSE`).
 
 ## Sources
 

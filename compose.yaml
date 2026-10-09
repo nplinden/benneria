@@ -1,0 +1,26 @@
+# Sample Docker Compose setup for Benneria.
+#
+#   docker compose up -d          # build the image and start it: http://localhost:1525
+#   BENNERIA_PORT=8080 docker compose up -d   # same, on another port of this machine
+#   docker compose logs -f        # follow the request log
+#   docker compose down           # stop and remove the container
+#
+# To run the image published by CI instead of building it here, replace "build: ." with
+#   image: ghcr.io/<owner>/benneria:latest
+
+services:
+  benneria:
+    build: .
+    image: benneria:latest
+    ports:
+      - "${BENNERIA_PORT:-1525}:1525"
+    environment:
+      WEB_CONCURRENCY: 4          # gunicorn worker processes; about one per CPU core
+    restart: unless-stopped
+    # The app only reads its database, so the container's filesystem can be read-only; gunicorn
+    # just needs somewhere to write its temporary files and control socket.
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/benneria:mode=1777  # writable by the app's unprivileged user
+    # The image's own health check (a lookup on the API) applies; Compose reports it in `ps`.

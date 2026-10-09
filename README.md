@@ -10,7 +10,7 @@ Built with [Flask](https://flask.palletsprojects.com/); the data build and searc
 ## Run
 
 ```sh
-uv run benneria                                # http://localhost:8000
+uv run benneria                                # http://localhost:1525
 uv run benneria --port 9000 --host 0.0.0.0 --open
 ```
 
@@ -24,8 +24,8 @@ Run the app under [gunicorn](https://gunicorn.org/) (Linux and macOS), with the 
 `gunicorn.conf.py`:
 
 ```sh
-uv run gunicorn benneria.app:app                         # http://127.0.0.1:8000, 4 workers
-WEB_CONCURRENCY=8 uv run gunicorn benneria.app:app --bind 0.0.0.0:8000
+uv run gunicorn benneria.app:app                         # http://127.0.0.1:1525, 4 workers
+WEB_CONCURRENCY=8 uv run gunicorn benneria.app:app --bind 0.0.0.0:1525
 ```
 
 It runs several worker processes, queues up to 2048 waiting connections, restarts a worker
@@ -34,6 +34,18 @@ development machine, 4 workers served about 3,000 lookups a second with 32 to 12
 clients, at a few tens of milliseconds each, with memory steady at about 190 MB in total. The
 app is a standard WSGI application, `benneria.app:app`, so other WSGI servers (e.g. waitress on
 Windows) can run it too.
+
+### With Docker
+
+```sh
+docker build -t benneria .
+docker run -p 1525:1525 benneria                        # http://localhost:1525
+docker run -p 1525:1525 -e WEB_CONCURRENCY=8 benneria   # more workers
+```
+
+The image (about 150 MB) runs gunicorn with `gunicorn.conf.py` as an unprivileged user, on
+Python 3.14 with the dependencies pinned in `uv.lock`. The lexicon database is inside the
+package, so it needs no volume or network, and it has a health check on the API.
 
 Limits and caching:
 
@@ -51,7 +63,7 @@ Options:
 | Flag     | Default     | Description                    |
 | -------- | ----------- | ------------------------------ |
 | `--host` | `127.0.0.1` | Interface to bind              |
-| `--port` | `8000`      | Port to listen on              |
+| `--port` | `1525`      | Port to listen on              |
 | `--open` | off         | Open the browser on start      |
 
 Binding to `0.0.0.0` lets anyone on your network use the server.

@@ -1,0 +1,101 @@
+# Tests, then builds the Docker image, smoke-tests it, and publishes it to the GitHub Container
+# Registry (ghcr.io/<owner>/<repo>). Pull requests run the tests and build the image without
+# publishing it.
+#
+# Published tags: "main" and "latest" for the main branch, "sha-<commit>" for every pushed
+# commit, and "1.2.3" / "1.2" for version tags "v1.2.3".
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python version from .python-version, dependencies exactly as in uv.lock (dev included).
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --frozen
+
+      - name: Run tests
+        run: uv run pytest -q
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # to push to ghcr.io with the workflow's own token
+    steps:
+      - uses: actions/checkout@v4
+
+      # Registry image names must be lowercase; repository names may not be.
+      - name: Image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true            # into the local Docker, for the smoke test
+          tags: benneria:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Start the image and check that it answers a lookup on its port (1525).
+      - name: Smoke test
+        run: |
+          docker run -d --name benneria -p 1525:1525 benneria:ci
+          for i in $(seq 1 20); do
+            if curl -fsS "http://localhost:1525/api/entry?strong=1254" -o response.json; then break; fi
+            sleep 1
+          done
+          docker logs benneria
+          python3 -c "import json; r = json.load(open('response.json'))['results']; assert {e['gloss'] for e in r} == {'shape', 'be fat'}, r; print('lookup ok')"
+
+      - name: Log in to the GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same build as above, reused from the cache, tagged and pushed.
+      - name: Push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha

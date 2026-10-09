@@ -1,0 +1,14 @@
+# Not needed in the image: local environments, caches, build sources and reports.
+.git
+.venv
+__pycache__
+**/__pycache__
+*.py[oc]
+build
+dist
+reports
+tests
+scripts
+.python-version
+Dockerfile
+.dockerignore

@@ -2,7 +2,7 @@
 Development server: `uv run benneria` runs the Flask app (app.py) with Flask's built-in server.
 
 Run:
-    uv run benneria                           # http://127.0.0.1:8000
+    uv run benneria                           # http://127.0.0.1:1525
     uv run benneria --port 9000 --host 0.0.0.0 --open
 """
 
@@ -16,7 +16,7 @@ from .app import app
 def main():
     ap = argparse.ArgumentParser(description="Benneria: a Hebrew and Aramaic dictionary web app")
     ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--port", type=int, default=1525)
     ap.add_argument("--open", action="store_true", help="open the browser on start")
     args = ap.parse_args()
 

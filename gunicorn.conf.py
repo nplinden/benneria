@@ -3,13 +3,13 @@ gunicorn settings for running Benneria in production:
 
     uv run gunicorn benneria.app:app
 
-Settings can be overridden on the command line (e.g. --bind 0.0.0.0:8000) or, for the worker
+Settings can be overridden on the command line (e.g. --bind 0.0.0.0:1525) or, for the worker
 count, with the WEB_CONCURRENCY environment variable.
 """
 
 import os
 
-bind = os.environ.get("BENNERIA_BIND", "127.0.0.1:8000")
+bind = os.environ.get("BENNERIA_BIND", "127.0.0.1:1525")
 
 # Separate processes, so lookups use several cores instead of being limited by Python's GIL.
 # Each worker opens its own read-only connection to the database, which the OS caches once for all.

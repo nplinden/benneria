@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 benneria = "benneria:main"
+benneria-notebook = "benneria_notebook:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]
@@ -29,3 +30,7 @@ build = [
 dev = [
     "pytest>=8.4.2",
 ]
+
+# Two packages: the dictionary and the notebook.
+[tool.uv.build-backend]
+module-name = ["benneria", "benneria_notebook"]

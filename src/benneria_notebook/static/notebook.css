@@ -1,0 +1,426 @@
+/* Benneria Notebook: layout on top of the dictionary's stylesheet (benneria.css), whose colour
+   variables, cards and Hebrew font it reuses. */
+
+/* Sidebar on the left, notebook on the right; the page scrolls, the sidebar stays in place. */
+body.notebook {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  grid-template-areas: "toc view" "toc foot";
+  min-height: 100vh;
+}
+
+body.notebook main {
+  grid-area: view;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+body.notebook footer {
+  grid-area: foot;
+}
+
+/* ---------- sidebar: books and chapters ---------- */
+
+.toc {
+  grid-area: toc;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--card);
+  border-right: 1px solid var(--line);
+  padding: 14px 10px 20px;
+  user-select: none;  /* double-clicks shouldn't select text */
+}
+
+.toc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 12px;
+}
+
+.toc-title {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.names-option select {
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.toc-part h2 {
+  margin: 0 0 4px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The separator between Torah, Nevi'im and Ketuvim */
+.toc-part + .toc-part {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.toc button {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.toc .book {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: start;
+}
+
+.toc .book:hover,
+.toc-book.open > .book {
+  background: var(--chip);
+}
+
+.toc .book small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 4px;
+  padding: 6px 8px 10px;
+}
+
+/* A chapter without a notebook is greyed; one with a notebook is in full colour. */
+.toc .chapter {
+  padding: 4px 0;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  opacity: .55;
+}
+
+.toc .chapter.created {
+  color: var(--ink);
+  background: var(--chip);
+  opacity: 1;
+}
+
+.toc .chapter:hover {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.toc .chapter.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--card);
+}
+
+.toc-hint {
+  margin: 14px 8px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- notebook: one box per verse ---------- */
+
+.chapter-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.admonition {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 12px 18px 14px;
+  margin: 14px 0;
+}
+
+.admonition-head {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.verse-text {
+  margin: 6px 0 0;
+  font-size: 26px;
+  line-height: 1.9;
+}
+
+/* ---------- notes between verses ---------- */
+
+.verse-note {
+  position: relative;
+  margin: -6px 0 6px;
+  padding: 0 4px;
+}
+
+.note-view {
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: text;
+}
+
+.note-view:hover,
+.note-view:focus-visible {
+  background: var(--card);
+  outline: 1px dashed var(--line);
+}
+
+/* An empty note is just a faint invitation, clearer on hover. */
+.note-view.empty {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+  opacity: .35;
+}
+
+.note-view.empty:hover,
+.note-view.empty:focus-visible {
+  opacity: .9;
+}
+
+.note-view p,
+.note-view ul,
+.note-view ol,
+.note-view blockquote {
+  margin: 6px 0;
+}
+
+.note-view h3,
+.note-view h4,
+.note-view h5 {
+  margin: 10px 0 4px;
+}
+
+.note-view blockquote {
+  padding-left: 10px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+}
+
+.note-view code {
+  font-size: 90%;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--chip);
+}
+
+.note-edit {
+  display: block;
+  width: 100%;
+  min-height: 4em;
+  padding: 8px 14px;
+  font: inherit;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.note-edit:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.save-status {
+  position: absolute;
+  right: 8px;
+  bottom: -14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.save-status.error {
+  color: #b42318;
+}
+
+/* ---------- a verb table per verse ---------- */
+
+.verb-table-box {
+  position: relative;
+  margin: -6px 0 10px;
+  padding: 0 4px;
+}
+
+.verb-table-box button {
+  font-weight: 400;
+  cursor: pointer;
+}
+
+/* Offered under each verse, discreet until hovered. */
+.add-table,
+.add-row {
+  padding: 2px 10px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.add-table {
+  opacity: .45;
+}
+
+.add-table:hover,
+.add-table:focus-visible,
+.add-row:hover,
+.add-row:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.verb-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.verb-table th {
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--muted);
+  background: var(--chip);
+  border-bottom: 1px solid var(--line);
+}
+
+.verb-table th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.verb-table th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.verb-table td {
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.verb-table td + td {
+  border-left: 1px solid var(--line);
+}
+
+.verb-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.verb-table .cell {
+  width: 100%;
+  min-width: 6em;
+  padding: 6px 8px;
+  font: inherit;
+  text-align: center;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.verb-table .cell.he {
+  font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
+  font-size: 22px;
+  min-width: 4em;
+}
+
+.verb-table .cell:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.verb-table .row-actions {
+  width: 1%;
+}
+
+.remove-row {
+  padding: 0 10px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  opacity: 0;
+}
+
+.verb-table tr:hover .remove-row,
+.remove-row:focus-visible {
+  opacity: 1;
+}
+
+.remove-row:hover {
+  color: #b42318;
+}
+
+.table-actions {
+  margin-top: 6px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- narrow screens: chapters above the notebook ---------- */
+
+@media (max-width: 720px) {
+  body.notebook {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "toc" "view" "foot";
+  }
+
+  .toc {
+    position: static;
+    height: auto;
+    max-height: 45vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  body.notebook main {
+    padding: 16px;
+  }
+}

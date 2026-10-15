@@ -1,7 +1,14 @@
-# Data license
+# Data licenses
 
-This notice covers `src/benneria/data/lexicon.sqlite`, the lexicon database the app uses. It
-does not cover the app's code, which is under the MIT License (see `LICENSE`).
+This repository contains two databases, under different licenses. Neither notice covers the code,
+which is under the MIT License (see `LICENSE`).
+
+| Database | Used by | Built by | License |
+|---|---|---|---|
+| `src/benneria/data/lexicon.sqlite` | Benneria (the dictionary) | `scripts/build_data.py` | CC BY 4.0 |
+| `src/benneria_notebook/data/bhsa.sqlite` | Benneria Notebook | `scripts/build_bhsa.py` | **CC BY-NC 4.0: non-commercial** |
+
+# lexicon.sqlite
 
 ## Sources
 
@@ -30,9 +37,8 @@ and so is the database derived from them.
   https://github.com/openscriptures/morphhb
 
 The second line is the wording morphhb's
-[LICENSE.md](https://github.com/openscriptures/morphhb/blob/master/LICENSE.md) asks for. The app
-shows both in its footer when it runs with the local backend, and the database records them in its
-`meta` table.
+[LICENSE.md](https://github.com/openscriptures/morphhb/blob/master/LICENSE.md) asks for. The
+dictionary shows both in its footer, and the database records them in its `meta` table.
 
 ## Changes made
 
@@ -43,9 +49,51 @@ The source XML is transformed, not redistributed as is:
 - BDB and Strong's entries rendered from XML to HTML; BDB's Bible reference codes normalized
   (typos and irregular forms fixed) and given verse tooltips; BDB's part-of-speech abbreviations
   given tooltips from `BDBPartsOfSpeech.xml`, with three of its entries corrected (`gent`,
-  `patr`, `Haph`)
+  `patr`, `Haph`); untagged parts of speech after a headword tagged; abbreviations in BDB's
+  prose given tooltips
 - the morphhb Bible reduced to a spelling index: each distinct word form with its entry, parse,
   occurrence count and verses; cantillation removed, and consonant-only and prefix-less forms
   added
 
 No endorsement by the Open Scriptures Hebrew Bible Project is implied.
+
+# bhsa.sqlite
+
+## Source
+
+The database is built by `scripts/build_bhsa.py` from
+[BHSA](https://github.com/ETCBC/bhsa), version 2021: the Biblia Hebraica Stuttgartensia
+Amstelodamensis, the Eep Talstra Centre for Bible and Computer's linguistically annotated edition
+of the Biblia Hebraica Stuttgartensia, read with [Text-Fabric](https://github.com/annotation/text-fabric).
+
+## License
+
+BHSA is released under the
+[Creative Commons Attribution-NonCommercial 4.0 International license (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/),
+and so is the database derived from it. In BHSA's own words: do not use the data for commercial
+applications without consent; for any commercial use, contact the German Bible Society
+(Deutsche Bibelgesellschaft).
+
+This makes Benneria Notebook non-commercial, whatever the license of its code. The dictionary
+does not use this database.
+
+## Attribution
+
+BHSA asks that publications of the data or results cite its persistent identifier:
+
+- BHSA (Biblia Hebraica Stuttgartensia Amstelodamensis), Eep Talstra Centre for Bible and
+  Computer, version 2021. https://doi.org/10.17026/dans-z6y-skyh
+
+The database records this in its `meta` table.
+
+## Changes made
+
+- Selected from the corpus: the books, verses and words, each word's text (vowels and accents),
+  the text following it, its lexeme with the lexeme's vocalised form, gloss and language, and
+  its part of speech, verbal stem and tense, person, gender, number and state.
+- Converted to SQLite tables. Verses get OSIS identifiers (`Gen.1.1`) and words a written-word
+  number within the verse (prefixes such as בְּ are separate BHSA words).
+- Not stored: phrases, clauses, sentences and BHSA's other features.
+
+No endorsement by the Eep Talstra Centre for Bible and Computer or the German Bible Society is
+implied.

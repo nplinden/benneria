@@ -164,5 +164,30 @@ Both are transformed here: converted from XML to SQLite, joined, and rendered to
 [DATA_LICENSE.md](DATA_LICENSE.md) for the full notice, the source commits and the list of
 changes. The app's footer shows this attribution.
 
-The app's own code is released under the [MIT License](LICENSE). The lexicon database keeps its
-own license, CC BY 4.0, described above and in [DATA_LICENSE.md](DATA_LICENSE.md).
+## Bible text for Benneria Notebook
+
+Benneria Notebook (in development, in `src/benneria_notebook/`) will take notes on Biblical verses.
+Its Bible text comes from [BHSA](https://github.com/ETCBC/bhsa), the ETCBC's annotated edition of
+the Biblia Hebraica Stuttgartensia, in a separate database, `src/benneria_notebook/data/bhsa.sqlite`:
+
+```sh
+uv run --group build python scripts/build_bhsa.py   # downloads BHSA (about 270 MB) on first run
+```
+
+It holds the 39 books, 23,213 verses (with ids such as `Gen.1.1`, matching the dictionary's
+verse numbering exactly), and 426,590 words with their lexeme, gloss and parse. BHSA counts a
+prefix such as בְּ as a word of its own, so each word also records which written word it belongs
+to. Verse texts and the words' forms without cantillation or vowels are not stored but computed by
+`benneria_notebook/bhsa.py`; a check during development confirmed this reproduces every verse
+exactly. The build needs Text-Fabric, in the `build` dependency group, which the app does not
+install.
+
+BHSA's license is **CC BY-NC 4.0: no commercial use** without the German Bible Society's
+consent, and its citation is https://doi.org/10.17026/dans-z6y-skyh. The dictionary does not use
+this database. See [DATA_LICENSE.md](DATA_LICENSE.md).
+
+## Licenses
+
+The code is released under the [MIT License](LICENSE). The two databases keep their own
+licenses, described in [DATA_LICENSE.md](DATA_LICENSE.md): CC BY 4.0 for the dictionary's
+`lexicon.sqlite`, and CC BY-NC 4.0 (non-commercial) for the notebook's `bhsa.sqlite`.

@@ -38,12 +38,10 @@ function render(data) {
   const { book, chapter, verses } = data;
   document.title = `${bookName(book)} ${chapter} · Benneria BHS`;
   $("#view").innerHTML = `
-    <h1 class="chapter-title">${esc(bookName(book))} ${chapter}</h1>
-    ${verses.map(v => `
-      <section class="admonition" id="v${v.verse}">
-        <div class="admonition-head"><span aria-hidden="true">✦</span> ${bookName(book)} ${chapter}:${v.verse}</div>
-        <p class="verse-text he" dir="rtl" lang="he">${esc(v.text)}</p>
-      </section>`).join("")}`;
+    <h1 class="bhs-title">${esc(bookName(book))} ${chapter}</h1>
+    <div class="bhs-text he" dir="rtl" lang="he">
+      ${verses.map(v => `<p class="bhs-verse" id="v${v.verse}"><span class="verse-num">${v.verse}</span>${esc(v.text)}</p>`).join("")}
+    </div>`;
   window.scrollTo({ top: 0 });
 }
 

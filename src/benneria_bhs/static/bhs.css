@@ -1,5 +1,5 @@
-/* BHS reader: a top bar with the book and chapter selectors, then the notebook's own verse-box
-   styles (admonition, verse-text), reused as is since this page shows the same kind of box. */
+/* BHS reader: a top bar with the book and chapter selectors, then the chapter's text as plain
+   running verses, numbered, with no box or card around each one. */
 
 .bhs-bar {
   position: sticky;
@@ -32,4 +32,24 @@
 
 body.bhs main {
   max-width: 740px;
+}
+
+.bhs-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.bhs-verse {
+  margin: 0 0 10px;
+  font-size: 26px;
+  line-height: 1.9;
+}
+
+.verse-num {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-inline-end: 8px;
 }

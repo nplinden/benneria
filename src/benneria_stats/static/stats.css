@@ -167,18 +167,19 @@ body.stats main {
 }
 
 /* The eight tenses' colours, in TENSES order (stats.py); shared between the chart and legend.
-   A teal/violet/magenta palette, deliberately well clear of the blue, gold, green, red, brown
-   and pink this page's author already uses to colour binyanim elsewhere (Anki), since here
-   colour means tense, not binyan -- reusing those would invite reading it as the same code. */
+   Chosen to sit well clear (>=20 degrees of hue) of the seven binyan colours this page's author
+   already uses in Anki -- paal blue #1c71d8, piel gold #f5c211, hiphil green #2ec27e, hitpael
+   red #c01c28, pual brown #986a44, niphal pink #f7899c, hophal purple #9141ac -- since here
+   colour means tense, not binyan, and reusing those hues would invite reading it as that code. */
 :root {
-  --tense-0: #2C9396; /* Qatal */
-  --tense-1: #5A883A; /* Yiqtol */
-  --tense-2: #4E4EBC; /* Wayyiqtol */
-  --tense-3: #6A4AB5; /* Imperative */
-  --tense-4: #8E54B6; /* Infinitive (absolute) */
-  --tense-5: #AA4AB5; /* Infinitive (construct) */
-  --tense-6: #C559AF; /* Participle */
-  --tense-7: #838695; /* Participle (passive) */
+  --tense-0: #708532; /* Qatal */
+  --tense-1: #3D7538; /* Yiqtol */
+  --tense-2: #298B8E; /* Wayyiqtol */
+  --tense-3: #5558BE; /* Imperative */
+  --tense-4: #6B4CA9; /* Infinitive (absolute) */
+  --tense-5: #AE47A0; /* Infinitive (construct) */
+  --tense-6: #C95E9F; /* Participle */
+  --tense-7: #8F8F8F; /* Participle (passive) */
 }
 
 /* ---------- definitions ---------- */

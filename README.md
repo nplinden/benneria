@@ -271,8 +271,10 @@ Statistics, in `src/benneria_stats/`, served at `/stats`, reproduces the verb-fo
 - A table of every verb root and how often it occurs in each of the seven common binyanim
   (Paal, Piel, Hifil, Hitpael, Hofal, Pual, Nifal), with a Total column, most frequent root
   first. Click a column header to sort by it.
-- A chart of how those occurrences split across the eight tenses (Qatal, Yiqtol, Wayyiqtol,
-  Imperative, the two infinitives, and the two participles), for every root by default.
+- A bar chart of the same counts, one bar per binyan, each in that binyan's own color (matching
+  the author's existing Anki color-coding for the binyanim, so a color means the same binyan in
+  both places). Hover a bar for its breakdown across the eight tenses (Qatal, Yiqtol, Wayyiqtol,
+  Imperative, the two infinitives, and the two participles).
 - Click a root in the table to restrict the chart to it (click it again to go back to every
   root; several roots can be selected at once). Its dictionary entries then show below the
   chart — the dictionary's own Strong's and BDB cards (`entry-card.js`, shared with `/lexicon`),

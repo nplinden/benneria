@@ -118,19 +118,26 @@ async function refreshChart() {
     : `${selected.size} roots`;
 }
 
+// Each binyan's own colour (matching this page's author's Anki palette; see stats.css).
+const BINYAN_COLORS = {
+  Paal: "var(--binyan-paal)", Piel: "var(--binyan-piel)", Hifil: "var(--binyan-hifil)",
+  Hitpael: "var(--binyan-hitpael)", Hofal: "var(--binyan-hofal)", Pual: "var(--binyan-pual)",
+  Nifal: "var(--binyan-nifal)",
+};
+
 function renderChart(rows) {
   const totals = rows.map(row => tenses.reduce((sum, t) => sum + row[t], 0));
   const max = Math.max(1, ...totals);
-  $("#chartRows").innerHTML = rows.map((row, i) => `
+  $("#chartRows").innerHTML = rows.map((row, i) => {
+    const tooltip = tenses.filter(t => row[t]).map(t => `${t}: ${row[t]}`).join("\n");
+    return `
     <div class="chart-row">
       <span class="chart-row-label">${esc(row.binyan)}</span>
-      <div class="chart-row-track"><div class="chart-bar" style="width:${totals[i] / max * 100}%">
-        ${tenses.map((t, ti) => row[t] ? `<span class="chart-seg" style="flex:${row[t]} 1 0%; background: var(--tense-${ti})" title="${esc(t)}: ${row[t]}"></span>` : "").join("")}
-      </div></div>
+      <div class="chart-row-track"><div class="chart-bar" title="${esc(tooltip)}"
+        style="width:${totals[i] / max * 100}%; background:${BINYAN_COLORS[row.binyan] || "var(--muted)"}"></div></div>
       <span class="chart-row-total">${totals[i]}</span>
-    </div>`).join("");
-  $("#chartLegend").innerHTML = tenses.map((t, ti) =>
-    `<span><i class="swatch" style="background: var(--tense-${ti})"></i>${esc(t)}</span>`).join("");
+    </div>`;
+  }).join("");
 }
 
 // ---------- definitions ----------

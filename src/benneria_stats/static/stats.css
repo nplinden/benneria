@@ -131,11 +131,7 @@ body.stats main {
 
 .chart-bar {
   height: 100%;
-  display: flex;
-}
-
-.chart-seg {
-  height: 100%;
+  cursor: default;
 }
 
 .chart-row-total {
@@ -146,40 +142,17 @@ body.stats main {
   font-variant-numeric: tabular-nums;
 }
 
-.chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin-top: 16px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.chart-legend .swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  margin-inline-end: 5px;
-  vertical-align: middle;
-}
-
-/* The eight tenses' colours, in TENSES order (stats.py); shared between the chart and legend.
-   Chosen to sit well clear (>=20 degrees of hue) of the seven binyan colours this page's author
-   already uses in Anki -- paal blue #1c71d8, piel gold #f5c211, hiphil green #2ec27e, hitpael
-   red #c01c28, pual brown #986a44, niphal pink #f7899c, hophal purple #9141ac -- since here
-   colour means tense, not binyan, and reusing those hues would invite reading it as that code. */
+/* Binyan colours: the same ones this page's author already uses in Anki for the same binyanim
+   (paal, piel, hiphil, hitpael, pual, niphal, hophal) -- color means binyan in both places now,
+   so matching them is the non-confusing choice. Hover a bar for its tense breakdown. */
 :root {
-  --tense-0: #708532; /* Qatal */
-  --tense-1: #3D7538; /* Yiqtol */
-  --tense-2: #298B8E; /* Wayyiqtol */
-  --tense-3: #5558BE; /* Imperative */
-  --tense-4: #6B4CA9; /* Infinitive (absolute) */
-  --tense-5: #AE47A0; /* Infinitive (construct) */
-  --tense-6: #C95E9F; /* Participle */
-  --tense-7: #8F8F8F; /* Participle (passive) */
+  --binyan-paal: #1c71d8;
+  --binyan-piel: #f5c211;
+  --binyan-hifil: #2ec27e;
+  --binyan-hitpael: #c01c28;
+  --binyan-hofal: #9141ac;
+  --binyan-pual: #986a44;
+  --binyan-nifal: #f7899c;
 }
 
 /* ---------- definitions ---------- */

@@ -8,14 +8,13 @@ let tenses = [];      // the eight tenses, in chart-stacking order (from /api/st
 let sortKey = "total";
 let sortDir = "desc";
 let page = 0;
-const extraCols = new Set();   // binyan columns shown beside Root/Total
 const selected = new Set();    // roots clicked in the table, restricting the chart and definitions
 let anchorRoot = null;         // last root clicked, where a shift+click range starts from
 
 // ---------- table ----------
 
 function columns() {
-  return ["root", "total", ...binyanim.filter(b => extraCols.has(b))];
+  return ["root", "total", ...binyanim];
 }
 
 const COLUMN_LABELS = { root: "Root", total: "Total" };
@@ -99,23 +98,6 @@ $("#statsBody").addEventListener("click", (ev) => {
 $("#prevPage").addEventListener("click", () => { page--; renderBody(); });
 $("#nextPage").addEventListener("click", () => { page++; renderBody(); });
 
-// ---------- binyan column toggles ----------
-
-function renderBinyanToggles() {
-  $("#binyanToggles").innerHTML = binyanim.map(b =>
-    `<label><input type="checkbox" data-binyan="${esc(b)}" ${extraCols.has(b) ? "checked" : ""}> ${esc(b)}</label>`
-  ).join("");
-}
-
-$("#binyanToggles").addEventListener("change", (ev) => {
-  const b = ev.target.dataset.binyan;
-  if (b === undefined) return;
-  ev.target.checked ? extraCols.add(b) : extraCols.delete(b);
-  if (!extraCols.has(sortKey) && sortKey !== "root" && sortKey !== "total") sortKey = "total";
-  renderHead();
-  renderBody();
-});
-
 // ---------- chart ----------
 
 async function refreshChart() {
@@ -165,7 +147,6 @@ async function refreshDefinitions() {
   const data = await (await fetch("/api/stats/roots")).json();
   roots = data.roots;
   binyanim = data.binyanim;
-  renderBinyanToggles();
   renderHead();
   renderBody();
   await refreshChart();

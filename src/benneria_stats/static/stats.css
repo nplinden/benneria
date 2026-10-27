@@ -5,16 +5,12 @@ body.stats main {
   max-width: 1100px;
 }
 
-.stats-intro {
-  color: var(--muted);
-  margin: 4px 0 18px;
-}
-
 .stats-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
+  margin-top: 20px;
 }
 
 @media (max-width: 760px) {
@@ -91,12 +87,6 @@ body.stats main {
   margin-top: 10px;
   font-size: 13px;
   color: var(--muted);
-}
-
-/* ---------- binyan column toggles (reuses .filters/.filter-row/.filter-label) ---------- */
-
-.stats-cols {
-  margin-bottom: 14px;
 }
 
 /* ---------- chart ---------- */

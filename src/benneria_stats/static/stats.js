@@ -10,6 +10,7 @@ let sortDir = "desc";
 let page = 0;
 const extraCols = new Set();   // binyan columns shown beside Root/Total
 const selected = new Set();    // roots clicked in the table, restricting the chart and definitions
+let anchorRoot = null;         // last root clicked, where a shift+click range starts from
 
 // ---------- table ----------
 
@@ -68,11 +69,28 @@ $("#statsHead").addEventListener("click", (ev) => {
   renderBody();
 });
 
+// Plain click: select just this row (replacing any other selection), or deselect it if it was
+// the only one selected. Ctrl/Cmd+click adds it to the selection. Shift+click adds every row
+// between the last-clicked row and this one, in the table's current sort order. With nothing
+// selected yet, all three act like a plain click.
 $("#statsBody").addEventListener("click", (ev) => {
   const cell = ev.target.closest("[data-root]");
   if (!cell) return;
   const root = cell.dataset.root;
-  selected.has(root) ? selected.delete(root) : selected.add(root);
+
+  if (selected.size && ev.shiftKey && anchorRoot) {
+    const order = sortedRoots().map(r => r.root);
+    const [lo, hi] = [order.indexOf(anchorRoot), order.indexOf(root)].sort((a, b) => a - b);
+    for (let i = lo; i <= hi; i++) selected.add(order[i]);
+  } else if (selected.size && (ev.ctrlKey || ev.metaKey)) {
+    selected.add(root);
+  } else if (selected.size === 1 && selected.has(root)) {
+    selected.clear();
+  } else {
+    selected.clear();
+    selected.add(root);
+  }
+  anchorRoot = root;
   renderBody();
   refreshChart();
   refreshDefinitions();

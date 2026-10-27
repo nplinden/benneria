@@ -47,3 +47,16 @@ def verse_text(db, osis, form=None):
         "SELECT w.text, w.trailer FROM words w JOIN verses v ON v.id = w.verse_id "
         "WHERE v.osis = ? ORDER BY w.position", (osis,)).fetchall()
     return assemble([(r["text"], r["trailer"]) for r in rows], form)
+
+
+def chapter_verses(db, book_osis, chapter):
+    """[(verse, osis, text)] for a chapter ('Gen', 1), in verse order. Shared by the notebook
+    and the BHS reader, the two apps that show chapters of text."""
+    rows = db.execute(
+        "SELECT v.verse, v.osis, w.text, w.trailer FROM verses v "
+        "JOIN books b ON b.id = v.book_id JOIN words w ON w.verse_id = v.id "
+        "WHERE b.osis = ? AND v.chapter = ? ORDER BY v.verse, w.position", (book_osis, chapter)).fetchall()
+    verses = {}
+    for r in rows:
+        verses.setdefault((r["verse"], r["osis"]), []).append((r["text"], r["trailer"]))
+    return [(verse, osis, assemble(words)) for (verse, osis), words in verses.items()]

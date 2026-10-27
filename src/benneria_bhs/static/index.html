@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benneria BHS</title>
+<!-- The dictionary's stylesheet, the notebook's verse-box styles (reused as is), then this
+     page's own top bar. -->
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/notebook.css">
+<link rel="stylesheet" href="/static/bhs.css">
+</head>
+<body class="bhs">
+<header class="bhs-bar">
+  <label>Book
+    <select id="book" aria-label="Book"></select>
+  </label>
+  <label>Chapter
+    <select id="chapter" aria-label="Chapter"></select>
+  </label>
+</header>
+<main id="view">
+  <p class="status">Loading…</p>
+</main>
+<footer>
+  <p>Texte biblique : <a href="https://github.com/ETCBC/bhsa" target="_blank" rel="noopener">BHSA</a>
+    (Biblia Hebraica Stuttgartensia Amstelodamensis), Eep Talstra Centre for Bible and Computer,
+    <a href="https://doi.org/10.17026/dans-z6y-skyh" target="_blank" rel="noopener">doi:10.17026/dans-z6y-skyh</a>,
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+</footer>
+<script src="/static/books.js"></script>
+<script src="/static/bhs.js"></script>
+</body>
+</html>

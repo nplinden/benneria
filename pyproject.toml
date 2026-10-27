@@ -30,6 +30,7 @@ dev = [
     "pytest>=8.4.2",
 ]
 
-# Three packages: the dictionary, the notebook, and the combined web app that serves both.
+# Four packages: the dictionary, the notebook, the BHS reader, and the combined web app that
+# serves all three.
 [tool.uv.build-backend]
-module-name = ["benneria", "benneria_notebook", "benneria_web"]
+module-name = ["benneria", "benneria_notebook", "benneria_bhs", "benneria_web"]

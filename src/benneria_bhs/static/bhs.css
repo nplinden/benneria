@@ -1,0 +1,35 @@
+/* BHS reader: a top bar with the book and chapter selectors, then the notebook's own verse-box
+   styles (admonition, verse-text), reused as is since this page shows the same kind of box. */
+
+.bhs-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 16px;
+}
+
+.bhs-bar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.bhs-bar select {
+  font-size: 15px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body.bhs main {
+  max-width: 740px;
+}

@@ -100,19 +100,13 @@ def toc():
 
 def notebook(book, chapter):
     with closing(bhsa.connect()) as db:
-        rows = db.execute(
-            "SELECT v.verse, v.osis, w.text, w.trailer FROM verses v "
-            "JOIN books b ON b.id = v.book_id JOIN words w ON w.verse_id = v.id "
-            "WHERE b.osis = ? AND v.chapter = ? ORDER BY v.verse, w.position", (book, chapter)).fetchall()
-    verses = {}
-    for r in rows:
-        verses.setdefault((r["verse"], r["osis"]), []).append((r["text"], r["trailer"]))
+        rows = bhsa.chapter_verses(db, book, chapter)
     notes = store().notes(book, chapter)
     tables = store().tables(book, chapter)
     return {"book": book, "chapter": chapter, "columns": TABLE_COLUMNS,
-            "verses": [{"verse": v, "osis": osis, "text": bhsa.assemble(words),
+            "verses": [{"verse": v, "osis": osis, "text": text,
                         "note": notes.get(v, ""), "table": tables.get(v, [])}
-                       for (v, osis), words in verses.items()]}
+                       for v, osis, text in rows]}
 
 
 def verse_count(book, chapter):

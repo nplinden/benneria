@@ -113,7 +113,9 @@ async function refreshChart() {
   const data = await r.json();
   tenses = data.tenses;
   renderChart(data.data);
-  $("#chartTitle").textContent = selected.size ? [...selected].join(", ") : "Every root";
+  $("#chartTitle").textContent = selected.size === 0 ? "Every root"
+    : selected.size === 1 ? [...selected][0]
+    : `${selected.size} roots`;
 }
 
 function renderChart(rows) {

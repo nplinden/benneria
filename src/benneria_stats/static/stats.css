@@ -19,12 +19,12 @@ body.stats main {
   box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
 }
 
-.search-bar .row {
-  align-items: center;
-}
-
+/* .row stretches its children to the same height by default (as the dictionary's own search
+   bar relies on for its button, via .row .icon-btn's zero vertical padding in style.css), so
+   the clear button matches the input's height without its own rule here. */
 .search-icon {
   flex: none;
+  align-self: center;
   color: var(--muted);
 }
 

@@ -187,10 +187,3 @@ body.stats main {
 .stats-definitions {
   margin-top: 28px;
 }
-
-.def-root-head {
-  font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
-  font-size: 28px;
-  direction: rtl;
-  margin: 18px 0 4px;
-}

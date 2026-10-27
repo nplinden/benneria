@@ -139,10 +139,9 @@ async function refreshDefinitions() {
   const sections = await Promise.all([...selected].sort().map(async (root) => {
     const r = await fetch("/api/entry?" + new URLSearchParams({ root }));
     const data = await r.json();
-    const body = data.results.length
+    return data.results.length
       ? data.results.map(e => renderEntry(e, { bdbOnly: true })).join("")
       : `<p class="status">No definition found.</p>`;
-    return `<h3 class="def-root-head">${esc(root)}</h3>${body}`;
   }));
   div.innerHTML = sections.join("");
 }

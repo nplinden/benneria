@@ -1,5 +1,5 @@
 const $ = (s) => document.querySelector(s);
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 let roots = [];       // every root: {root, total, <binyan>: count, ...} (from /api/stats/roots)
 let binyanim = [];    // common binyanim, in display order

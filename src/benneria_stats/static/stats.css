@@ -98,6 +98,19 @@ body.stats main {
   background: var(--chip);
 }
 
+/* Blank padding rows, keeping a page always PAGE_SIZE rows tall (see stats.js's renderBody). */
+.stats-table tbody tr.filler-row {
+  cursor: default;
+}
+
+.stats-table tbody tr.filler-row:hover {
+  background: none;
+}
+
+.stats-table tbody tr.filler-row td {
+  border-bottom: none;
+}
+
 .stats-table .root-cell {
   font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
   font-size: 17px;

@@ -44,12 +44,17 @@ function renderBody() {
   const all = filteredSortedRoots();
   const start = page * PAGE_SIZE;
   const pageRows = all.slice(start, start + PAGE_SIZE);
-  $("#statsBody").innerHTML = pageRows.map(r => `
+  const rowsHtml = pageRows.map(r => `
     <tr class="${selected.has(r.root) ? "selected" : ""}" data-root="${esc(r.root)}">
       ${cols.map(c => c === "root"
         ? `<td class="root-cell he" dir="rtl">${esc(r.root)}</td>`
         : `<td>${r[c]}</td>`).join("")}
-    </tr>`).join("") || `<tr><td colspan="${cols.length}" class="status">No roots match.</td></tr>`;
+    </tr>`);
+  if (!rowsHtml.length) rowsHtml.push(`<tr><td colspan="${cols.length}" class="status">No roots match.</td></tr>`);
+  // Padded to a full page of rows, so filtering down to fewer roots doesn't shrink the table
+  // card (and, with it, the chart card stretched to match its height).
+  while (rowsHtml.length < PAGE_SIZE) rowsHtml.push(`<tr class="filler-row"><td colspan="${cols.length}">&nbsp;</td></tr>`);
+  $("#statsBody").innerHTML = rowsHtml.join("");
   renderPager(all.length);
 }
 

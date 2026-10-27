@@ -1,5 +1,5 @@
-/* Verb-form statistics: a sortable root/binyan table next to a binyan/tense bar chart, and
-   the selected roots' dictionary entries (entry-card.js) below. */
+/* Verb-form statistics: a sortable root/binyan table next to a bar chart, colored and labeled
+   by binyan, one bar per binyan. */
 
 body.stats main {
   max-width: 1100px;
@@ -175,10 +175,4 @@ body.stats main {
   --binyan-hofal: #9141ac;
   --binyan-pual: #986a44;
   --binyan-nifal: #f7899c;
-}
-
-/* ---------- definitions ---------- */
-
-.stats-definitions {
-  margin-top: 28px;
 }

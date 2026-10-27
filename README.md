@@ -275,12 +275,10 @@ Statistics, in `src/benneria_stats/`, served at `/stats`, reproduces the verb-fo
   the author's existing Anki color-coding for the binyanim, so a color means the same binyan in
   both places). Hover a bar for its breakdown across the eight tenses (Qatal, Yiqtol, Wayyiqtol,
   Imperative, the two infinitives, and the two participles).
-- Click a root in the table to restrict the chart to it (click it again to go back to every
-  root; several roots can be selected at once). Its dictionary entries then show below the
-  chart — the dictionary's own Strong's and BDB cards (`entry-card.js`, shared with `/lexicon`),
-  found by an exact match on the root's consonants, kept to verb entries only
-  (`/api/entry?root=`, not a search: a noun or proper name sharing the same consonants is left
-  out). A root with no matching verb entry shows "No definition found", same as hegram.
+- Click a row anywhere to restrict the chart to that root (click it again to go back to every
+  root). Ctrl/Cmd+click adds a root to the selection, and Shift+click adds every root between it
+  and the last one clicked. With one root selected, the chart's title links to its dictionary
+  entry at `/lexicon?word=`; with several, it just reads "N roots".
 
 ## Licenses
 

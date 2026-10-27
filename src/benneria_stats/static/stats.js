@@ -1,4 +1,6 @@
 const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PAGE_SIZE = 10;
 
 let roots = [];       // every root: {root, total, <binyan>: count, ...} (from /api/stats/roots)
@@ -8,7 +10,7 @@ let tenses = [];      // the eight tenses, in chart-stacking order (from /api/st
 let sortKey = "total";
 let sortDir = "desc";
 let page = 0;
-const selected = new Set();    // roots clicked in the table, restricting the chart and definitions
+const selected = new Set();    // roots clicked in the table, restricting the chart
 let anchorRoot = null;         // last root clicked, where a shift+click range starts from
 
 // ---------- table ----------
@@ -96,7 +98,6 @@ $("#statsBody").addEventListener("click", (ev) => {
   anchorRoot = root;
   renderBody();
   refreshChart();
-  refreshDefinitions();
 });
 
 $("#firstPage").addEventListener("click", () => { page = 0; renderBody(); });
@@ -139,21 +140,6 @@ function renderChart(rows) {
       <span class="chart-row-total">${totals[i]}</span>
     </div>`;
   }).join("");
-}
-
-// ---------- definitions ----------
-
-async function refreshDefinitions() {
-  const div = $("#definitions");
-  if (!selected.size) { div.innerHTML = ""; return; }
-  const sections = await Promise.all([...selected].sort().map(async (root) => {
-    const r = await fetch("/api/entry?" + new URLSearchParams({ root }));
-    const data = await r.json();
-    return data.results.length
-      ? data.results.map(e => renderEntry(e, { bdbOnly: true })).join("")
-      : `<p class="status">No definition found.</p>`;
-  }));
-  div.innerHTML = sections.join("");
 }
 
 // ---------- init ----------

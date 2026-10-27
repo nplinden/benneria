@@ -7,8 +7,8 @@ Endpoints:
     /api/stats/chart?root=...   the binyan/tense breakdown; repeat ?root= to restrict the count
                                  to several roots, omit it for every root
 
-A root's dictionary definition isn't served here: the page looks it up the same way the
-dictionary does, through /api/entry?root=... (see benneria.app and benneria.local.LocalLexicon.open).
+A single selected root's chart title links to its dictionary entry at /lexicon?word=..., rather
+than showing it here.
 """
 
 from importlib.resources import files

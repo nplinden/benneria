@@ -68,3 +68,11 @@ def test_definition_reuses_the_dictionary(client):
     assert {e["gloss"] for e in data["results"]} == {"shape", "be fat"}
     assert client.get("/api/entry", query_string={"root": "xyz"}).json["results"] == []
     assert client.get("/api/entry").status_code == 400
+
+
+def test_definition_is_verb_entries_only(client):
+    # שמר also names a noun, two proper names and an uncertain entry sharing its consonants;
+    # the root lookup keeps only the verb ("keep"), unlike a normal dictionary search.
+    data = client.get("/api/entry", query_string={"root": "שמר"}).json
+    assert [e["gloss"] for e in data["results"]] == ["keep"]
+    assert all(e["pos"] == "V" for e in data["results"])

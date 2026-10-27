@@ -135,7 +135,7 @@ the root page and the shared `/static/`.
 - `gunicorn.conf.py`: production server settings (workers, connection queue, timeouts)
 - `src/benneria/`: the dictionary
   - `local.py`: search over `data/lexicon.sqlite`, and opening entries by id, BDB id, Strong's
-    number or an exact consonantal root (`/api/entry?root=`, used by Statistics)
+    number or a verb root's exact consonants (`/api/entry?root=`, used by Statistics)
   - `refs.py`: Bible references ("Lev 19:3", "I Samuel 3") to OSIS ids ("Lev.19.3")
   - `hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and search
   - `app.py`: the blueprint: the page at `/lexicon`, `/api/lookup` and `/api/entry`
@@ -277,8 +277,9 @@ Statistics, in `src/benneria_stats/`, served at `/stats`, reproduces the verb-fo
 - Click a root in the table to restrict the chart to it (click it again to go back to every
   root; several roots can be selected at once). Its dictionary entries then show below the
   chart — the dictionary's own Strong's and BDB cards (`entry-card.js`, shared with `/lexicon`),
-  found by an exact match on the root's consonants (`/api/entry?root=`), not a search. A root
-  with no matching headword shows "No definition found", same as hegram.
+  found by an exact match on the root's consonants, kept to verb entries only
+  (`/api/entry?root=`, not a search: a noun or proper name sharing the same consonants is left
+  out). A root with no matching verb entry shows "No definition found", same as hegram.
 
 ## Licenses
 

@@ -148,10 +148,12 @@ class LocalLexicon:
         return rows
 
     def open(self, entry_id=None, bdb=None, strong=None, root=None):
-        """Entries by id, BDB id, Strong's number ('1254' gives 1254a and 1254b), or the exact
-        consonantal headword a root names (e.g. another app's own spelling of a verb's root) --
-        unlike search(), no fuzzy matching, no fallback steps. For cross-references and other
-        apps that already have an exact key. Same shape as search(), with no matched forms."""
+        """Entries by id, BDB id, Strong's number ('1254' gives 1254a and 1254b), or the verb
+        entries (pos 'V') an exact consonantal root names (e.g. another app's own spelling of a
+        verb's root) -- unlike search(), no fuzzy matching, no fallback steps, and other parts
+        of speech sharing the same consonants (a noun, a proper name) are left out. For
+        cross-references and other apps that already have an exact key. Same shape as search(),
+        with no matched forms."""
         if entry_id:
             sql, value = "SELECT id FROM entries WHERE id = ?", entry_id
         elif bdb:
@@ -159,7 +161,7 @@ class LocalLexicon:
         elif strong:
             sql, value = "SELECT id FROM entries WHERE strong = ? ORDER BY seq", strong
         else:
-            sql, value = "SELECT id FROM entries WHERE headword_c = ? ORDER BY seq", consonantal(root)
+            sql, value = "SELECT id FROM entries WHERE headword_c = ? AND pos = 'V' ORDER BY seq", consonantal(root)
         ids = [r["id"] for r in self.db.execute(sql, (value,))]
         results = [{**self.entry(i), "matches": [], "count": 0, "in_ref": False} for i in ids]
         return {"query": value, "ref": None, "steps": ["open"], "results": results}

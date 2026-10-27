@@ -64,6 +64,10 @@ body.stats main {
   font-variant-numeric: tabular-nums;
 }
 
+.stats-table tbody tr {
+  cursor: pointer;
+}
+
 .stats-table tbody tr:hover {
   background: var(--bg);
 }
@@ -73,7 +77,6 @@ body.stats main {
 }
 
 .stats-table .root-cell {
-  cursor: pointer;
   font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
   font-size: 17px;
 }

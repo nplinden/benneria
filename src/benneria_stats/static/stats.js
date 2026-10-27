@@ -41,9 +41,9 @@ function renderBody() {
   const start = page * PAGE_SIZE;
   const pageRows = all.slice(start, start + PAGE_SIZE);
   $("#statsBody").innerHTML = pageRows.map(r => `
-    <tr class="${selected.has(r.root) ? "selected" : ""}">
+    <tr class="${selected.has(r.root) ? "selected" : ""}" data-root="${esc(r.root)}">
       ${cols.map(c => c === "root"
-        ? `<td class="root-cell he" dir="rtl" data-root="${esc(r.root)}">${esc(r.root)}</td>`
+        ? `<td class="root-cell he" dir="rtl">${esc(r.root)}</td>`
         : `<td>${r[c]}</td>`).join("")}
     </tr>`).join("") || `<tr><td colspan="${cols.length}" class="status">No roots.</td></tr>`;
   renderPager(all.length);
@@ -77,9 +77,9 @@ $("#statsHead").addEventListener("click", (ev) => {
 // between the last-clicked row and this one, in the table's current sort order. With nothing
 // selected yet, all three act like a plain click.
 $("#statsBody").addEventListener("click", (ev) => {
-  const cell = ev.target.closest("[data-root]");
-  if (!cell) return;
-  const root = cell.dataset.root;
+  const row = ev.target.closest("[data-root]");
+  if (!row) return;
+  const root = row.dataset.root;
 
   if (selected.size && ev.shiftKey && anchorRoot) {
     const order = sortedRoots().map(r => r.root);

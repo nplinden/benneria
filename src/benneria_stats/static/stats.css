@@ -9,7 +9,6 @@ body.stats main {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 24px;
-  align-items: start;
   margin-top: 20px;
 }
 
@@ -92,6 +91,8 @@ body.stats main {
 /* ---------- chart ---------- */
 
 .chart-wrap {
+  display: flex;
+  flex-direction: column;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -106,11 +107,19 @@ body.stats main {
   color: var(--muted);
 }
 
+/* Fills the card's height (matched to the table card by .stats-grid's default row stretch),
+   spreading the binyan bars evenly across it instead of leaving them bunched at the top. */
+.chart-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
 .chart-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 8px 0;
 }
 
 .chart-row-label {

@@ -6,7 +6,7 @@ which is under the MIT License (see `LICENSE`).
 | Database | Used by | Built by | License |
 |---|---|---|---|
 | `src/benneria/data/lexicon.sqlite` | The dictionary (`/lexicon`) | `scripts/build_data.py` | CC BY 4.0 |
-| `src/benneria_notebook/data/bhsa.sqlite` | The notebook (`/notebook`) and BHS (`/bhs`) | `scripts/build_bhsa.py` | **CC BY-NC 4.0: non-commercial** |
+| `src/benneria_notebook/data/bhsa.sqlite` | The notebook (`/notebook`), BHS (`/bhs`) and Statistics (`/stats`) | `scripts/build_bhsa.py` | **CC BY-NC 4.0: non-commercial** |
 
 # lexicon.sqlite
 
@@ -74,10 +74,12 @@ and so is the database derived from it. In BHSA's own words: do not use the data
 applications without consent; for any commercial use, contact the German Bible Society
 (Deutsche Bibelgesellschaft).
 
-This makes the notebook (`/notebook`) and BHS (`/bhs`), which reads the same database, both
-non-commercial, whatever the license of their code. The dictionary's search and data
-(`/lexicon`, `src/benneria/`) do not use this database and remain CC BY 4.0, even though all
-three are served by the same app and image.
+This makes the notebook (`/notebook`), BHS (`/bhs`) and Statistics (`/stats`), which all read
+this database, non-commercial, whatever the license of their code -- Statistics included, even
+though its definition panel displays CC BY 4.0 dictionary entries, because the root and binyan
+counts it shows come from `bhsa.sqlite`. The dictionary's search and data (`/lexicon`,
+`src/benneria/`) do not use this database and remain CC BY 4.0, even though all four are served
+by the same app and image.
 
 ## Attribution
 

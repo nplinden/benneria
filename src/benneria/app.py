@@ -96,10 +96,10 @@ def lookup():
 
 @bp.get("/api/entry")
 def entry():
-    # Cross-references between entries: exactly one of ?id=, ?bdb= or ?strong=.
-    keys = {k: request.args[k] for k in ("id", "bdb", "strong") if request.args.get(k)}
+    # Cross-references and exact lookups: exactly one of ?id=, ?bdb=, ?strong= or ?root=.
+    keys = {k: request.args[k] for k in ("id", "bdb", "strong", "root") if request.args.get(k)}
     if len(keys) != 1:
-        return error("Give one of id, bdb or strong")
+        return error("Give one of id, bdb, strong or root")
     if not_modified():
         return api_response()
     kind, value = keys.popitem()

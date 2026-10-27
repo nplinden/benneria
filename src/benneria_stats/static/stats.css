@@ -1,0 +1,202 @@
+/* Verb-form statistics: a sortable root/binyan table next to a binyan/tense bar chart, and
+   the selected roots' dictionary entries (entry-card.js) below. */
+
+body.stats main {
+  max-width: 1100px;
+}
+
+.stats-intro {
+  color: var(--muted);
+  margin: 4px 0 18px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- table ---------- */
+
+.stats-table-wrap {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.stats-table th {
+  text-align: start;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stats-table th:hover {
+  color: var(--ink);
+}
+
+.stats-table th.sorted {
+  color: var(--accent);
+}
+
+.stats-table th .arrow {
+  font-size: 11px;
+  margin-inline-start: 2px;
+}
+
+.stats-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-table tbody tr:hover {
+  background: var(--bg);
+}
+
+.stats-table tbody tr.selected {
+  background: var(--chip);
+}
+
+.stats-table .root-cell {
+  cursor: pointer;
+  font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
+  font-size: 17px;
+}
+
+.stats-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- binyan column toggles (reuses .filters/.filter-row/.filter-label) ---------- */
+
+.stats-cols {
+  margin-bottom: 14px;
+}
+
+/* ---------- chart ---------- */
+
+.chart-wrap {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+}
+
+.chart-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.chart-row-label {
+  flex: none;
+  width: 60px;
+  font-size: 13px;
+  text-align: end;
+  color: var(--muted);
+}
+
+.chart-row-track {
+  flex: 1;
+  height: 20px;
+  background: var(--bg);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  display: flex;
+}
+
+.chart-seg {
+  height: 100%;
+}
+
+.chart-row-total {
+  flex: none;
+  width: 44px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chart-legend .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-inline-end: 5px;
+  vertical-align: middle;
+}
+
+/* The eight tenses' colours, in TENSES order (stats.py); shared between the chart and legend. */
+:root {
+  --tense-0: #D46D7A; /* Qatal */
+  --tense-1: #4C6FD4; /* Yiqtol */
+  --tense-2: #3F9E64; /* Wayyiqtol */
+  --tense-3: #D4A23F; /* Imperative */
+  --tense-4: #8E63C9; /* Infinitive (absolute) */
+  --tense-5: #3FA9B0; /* Infinitive (construct) */
+  --tense-6: #C98A3F; /* Participle */
+  --tense-7: #8C8C8C; /* Participle (passive) */
+}
+
+/* ---------- definitions ---------- */
+
+.stats-definitions {
+  margin-top: 28px;
+}
+
+.def-root-head {
+  font-family: "SBL Hebrew", "Ezra SIL", "David", serif;
+  font-size: 28px;
+  direction: rtl;
+  margin: 18px 0 4px;
+}

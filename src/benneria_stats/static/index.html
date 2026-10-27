@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benneria Statistics</title>
+<!-- The dictionary's stylesheet (colours, fonts, the entry card), then this page's own styles. -->
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/stats.css">
+</head>
+<body class="stats">
+<main>
+  <h1>Verb form statistics</h1>
+  <p class="stats-intro">How often each verb root occurs in each binyan across the Hebrew Bible,
+    and the binyan/tense breakdown behind that count. Click a root to restrict the chart (and
+    see its dictionary entry) to it; click it again to go back to every root. Click a column
+    header to sort the table.</p>
+
+  <div class="filter-row stats-cols">
+    <span class="filter-label">Columns<small>beside Total</small></span>
+    <div class="filters" id="binyanToggles"></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stats-table-wrap">
+      <table class="stats-table">
+        <thead><tr id="statsHead"></tr></thead>
+        <tbody id="statsBody"></tbody>
+      </table>
+      <div class="stats-pager">
+        <button type="button" class="ghost" id="prevPage">‹ Prev</button>
+        <span id="pageInfo"></span>
+        <button type="button" class="ghost" id="nextPage">Next ›</button>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <h2 class="chart-title" id="chartTitle">Every root</h2>
+      <div id="chartRows"></div>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+  </div>
+
+  <div class="stats-definitions" id="definitions"></div>
+</main>
+<footer>
+  <p>Verb-form statistics reproduce
+    <a href="https://github.com/nplinden/hegram" target="_blank" rel="noopener">hegram</a>'s
+    statistics page, over the same
+    <a href="https://github.com/ETCBC/bhsa" target="_blank" rel="noopener">BHSA</a> data as the
+    notebook and BHS (<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>).
+    Definitions are the dictionary's own Strong's and BDB entries.</p>
+</footer>
+<script src="/static/labels.js"></script>
+<script src="/static/entry-card.js"></script>
+<script src="/static/stats.js"></script>
+</body>
+</html>

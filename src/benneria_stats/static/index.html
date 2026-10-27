@@ -10,8 +10,15 @@
 </head>
 <body class="stats">
 <main>
-  <input type="text" id="rootFilter" class="root-filter" dir="rtl" autocomplete="off"
-    placeholder="Filter roots…" aria-label="Filter roots">
+  <div class="search-bar">
+    <div class="row">
+      <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.4" y1="15.4" x2="21" y2="21"/></svg>
+      <input type="text" id="rootFilter" dir="rtl" autocomplete="off" placeholder="Filter roots…" aria-label="Filter roots">
+      <button type="button" class="ghost icon-btn" id="clearFilter" aria-label="Clear filter" title="Clear filter" hidden>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
 
   <div class="stats-grid">
     <div class="stats-table-wrap">

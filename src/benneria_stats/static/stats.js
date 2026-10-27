@@ -109,8 +109,18 @@ $("#lastPage").addEventListener("click", () => { page = lastPageIndex; renderBod
 
 $("#rootFilter").addEventListener("input", (ev) => {
   filterText = ev.target.value.trim();
+  $("#clearFilter").hidden = !filterText;
   page = 0;
   renderBody();
+});
+
+$("#clearFilter").addEventListener("click", () => {
+  $("#rootFilter").value = "";
+  filterText = "";
+  $("#clearFilter").hidden = true;
+  page = 0;
+  renderBody();
+  $("#rootFilter").focus();
 });
 
 // ---------- chart ----------

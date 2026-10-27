@@ -8,9 +8,24 @@ body.stats main {
   justify-content: center;
 }
 
-.root-filter {
-  width: 100%;
+/* Styled like the dictionary's own search bar (style.css's form/.row/.icon-btn), a card with
+   a decorative search icon, the filter input, and a clear button shown once something's typed. */
+.search-bar {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
   margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+}
+
+.search-bar .row {
+  align-items: center;
+}
+
+.search-icon {
+  flex: none;
+  color: var(--muted);
 }
 
 .stats-grid {

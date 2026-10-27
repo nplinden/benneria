@@ -105,9 +105,19 @@ body.stats main {
 
 .chart-title {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* A single selected root's title links to its dictionary entry. */
+.chart-title a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.chart-title a:hover {
+  text-decoration: underline;
 }
 
 /* Fills the card's height (matched to the table card by .stats-grid's default row stretch),

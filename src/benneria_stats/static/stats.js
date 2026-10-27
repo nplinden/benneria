@@ -113,9 +113,10 @@ async function refreshChart() {
   const data = await r.json();
   tenses = data.tenses;
   renderChart(data.data);
-  $("#chartTitle").textContent = selected.size === 0 ? "Every root"
-    : selected.size === 1 ? [...selected][0]
-    : `${selected.size} roots`;
+  $("#chartTitle").innerHTML = selected.size === 0 ? "Every root"
+    : selected.size === 1
+      ? `<a href="/lexicon?word=${encodeURIComponent([...selected][0])}" class="he">${esc([...selected][0])}</a>`
+      : `${selected.size} roots`;
 }
 
 // Each binyan's own colour (matching this page's author's Anki palette; see stats.css).

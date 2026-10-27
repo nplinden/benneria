@@ -166,16 +166,19 @@ body.stats main {
   vertical-align: middle;
 }
 
-/* The eight tenses' colours, in TENSES order (stats.py); shared between the chart and legend. */
+/* The eight tenses' colours, in TENSES order (stats.py); shared between the chart and legend.
+   A teal/violet/magenta palette, deliberately well clear of the blue, gold, green, red, brown
+   and pink this page's author already uses to colour binyanim elsewhere (Anki), since here
+   colour means tense, not binyan -- reusing those would invite reading it as the same code. */
 :root {
-  --tense-0: #D46D7A; /* Qatal */
-  --tense-1: #4C6FD4; /* Yiqtol */
-  --tense-2: #3F9E64; /* Wayyiqtol */
-  --tense-3: #D4A23F; /* Imperative */
-  --tense-4: #8E63C9; /* Infinitive (absolute) */
-  --tense-5: #3FA9B0; /* Infinitive (construct) */
-  --tense-6: #C98A3F; /* Participle */
-  --tense-7: #8C8C8C; /* Participle (passive) */
+  --tense-0: #2C9396; /* Qatal */
+  --tense-1: #5A883A; /* Yiqtol */
+  --tense-2: #4E4EBC; /* Wayyiqtol */
+  --tense-3: #6A4AB5; /* Imperative */
+  --tense-4: #8E54B6; /* Infinitive (absolute) */
+  --tense-5: #AA4AB5; /* Infinitive (construct) */
+  --tense-6: #C559AF; /* Participle */
+  --tense-7: #838695; /* Participle (passive) */
 }
 
 /* ---------- definitions ---------- */

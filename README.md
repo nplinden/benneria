@@ -179,7 +179,8 @@ uv run benneria-notebook            # http://localhost:1526
   chapters. Book names are in French by default, or in English or Hebrew (a setting kept in the
   browser).
 - Double-clicking a chapter opens its notebook. A greyed chapter has none yet; double-clicking it
-  creates one.
+  creates one. "Supprimer ce carnet", next to the chapter's title, deletes a notebook with its
+  notes and tables after confirmation; the chapter is greyed again.
 - A chapter's notebook shows each verse in a box, with a note after each one (between it and
   the next verse). Click a note to edit it; it's written in Markdown (*italic*, **bold**, lists,
   quotes, links) and shown formatted once you leave it. Notes save automatically shortly after

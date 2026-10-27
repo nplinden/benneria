@@ -131,3 +131,13 @@ class Store:
                 db.execute("DELETE FROM tables WHERE book = ? AND chapter = ? AND verse = ?",
                            (book, chapter, verse))
         return stamp
+
+    def delete(self, book, chapter):
+        """Delete a chapter's notebook with all its notes and tables, in one transaction.
+        Returns {"notes": n, "tables": n} removed, or None if the chapter had no notebook."""
+        with self._connect() as db:
+            if not db.execute("DELETE FROM chapters WHERE book = ? AND chapter = ?", (book, chapter)).rowcount:
+                return None
+            removed = {kind: db.execute(f"DELETE FROM {kind} WHERE book = ? AND chapter = ?",
+                                        (book, chapter)).rowcount for kind in ("notes", "tables")}
+        return removed

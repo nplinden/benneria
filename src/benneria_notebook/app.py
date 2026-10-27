@@ -7,6 +7,7 @@ Endpoints:
     /api/notebooks/<book>/<chapter>   GET: the chapter's notebook, its verses and their notes
                                       (404 if not created yet)
                                       POST: create it, then return it
+                                      DELETE: delete it, with its notes and tables
     /api/notebooks/<book>/<chapter>/notes/<verse>
                                       PUT {"text": "..."}: save the note after that verse
                                       (Markdown; empty text removes it)
@@ -190,3 +191,14 @@ def save_table(book, chapter, verse):
     if len(rows) > MAX_ROWS or any(len(c) > MAX_CELL for row in rows for c in row):
         return error(413, f"Table too large: at most {MAX_ROWS} rows of {MAX_CELL} characters per cell")
     return jsonify({"verse": verse, "saved": store().set_table(book, chapter, verse, rows)})
+
+
+@app.delete("/api/notebooks/<book>/<int:chapter>")
+def delete_notebook(book, chapter):
+    # DELETE can't be sent by a cross-site form or a plain link, so other sites can't trigger it.
+    if (bad := check_chapter(book, chapter)) is not None:
+        return bad
+    removed = store().delete(book, chapter)
+    if removed is None:
+        return not_found("This chapter has no notebook")
+    return jsonify({"book": book, "chapter": chapter, "deleted": removed})

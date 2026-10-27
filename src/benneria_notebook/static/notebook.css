@@ -145,8 +145,35 @@ body.notebook footer {
 
 /* ---------- notebook: one box per verse ---------- */
 
-.chapter-title {
+.chapter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin: 0 0 8px;
+}
+
+/* Destructive, so quiet until hovered. */
+.delete-notebook {
+  flex: none;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-notebook:hover,
+.delete-notebook:focus-visible {
+  color: #b42318;
+  border-color: #b42318;
+}
+
+.chapter-title {
+  margin: 0;
   font-size: 22px;
   font-weight: 600;
 }

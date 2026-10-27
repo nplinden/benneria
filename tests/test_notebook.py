@@ -151,3 +151,27 @@ def test_tables_and_notes_are_independent(client):
     assert v1["note"] == "une note" and v1["table"] == [["a"] * 6]
     put_table(client, "Isa", 6, 1, [])
     assert client.get("/api/notebooks/Isa/6").json["verses"][0]["note"] == "une note"
+
+
+def test_delete_notebook(client):
+    client.post("/api/notebooks/Isa/6")
+    client.post("/api/notebooks/Isa/7")
+    put_note(client, "Isa", 6, 1, "une note")
+    put_note(client, "Isa", 6, 2, "une autre")
+    put_table(client, "Isa", 6, 3, [["a"] * 6])
+    put_note(client, "Isa", 7, 1, "à garder")
+    r = client.delete("/api/notebooks/Isa/6")
+    assert r.status_code == 200 and r.json["deleted"] == {"notes": 2, "tables": 1}
+    assert client.get("/api/notebooks/Isa/6").status_code == 404           # gone
+    assert notebook_app.store().notes("Isa", 6) == {} and notebook_app.store().tables("Isa", 6) == {}
+    isaiah = next(b for p in client.get("/api/toc").json["parts"] for b in p["books"] if b["osis"] == "Isa")
+    assert isaiah["created"] == [7]                                        # greyed again; 7 untouched
+    assert client.get("/api/notebooks/Isa/7").json["verses"][0]["note"] == "à garder"
+    recreated = client.post("/api/notebooks/Isa/6")                        # a fresh, empty notebook
+    assert recreated.status_code == 201
+    assert all(v["note"] == "" and v["table"] == [] for v in recreated.json["verses"])
+
+
+def test_delete_errors(client):
+    assert client.delete("/api/notebooks/Isa/6").status_code == 404   # no notebook
+    assert client.delete("/api/notebooks/Isa/99").status_code == 404  # no such chapter

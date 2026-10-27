@@ -93,7 +93,10 @@ function renderNotebook() {
   const { book, chapter, verses } = current;
   document.title = `${reference(book, chapter)} · Benneria Notebook`;
   $("#view").innerHTML = `
-    <h1 class="chapter-title" dir="${dir()}">${esc(reference(book, chapter))}</h1>
+    <div class="chapter-head">
+      <h1 class="chapter-title" dir="${dir()}">${esc(reference(book, chapter))}</h1>
+      <button type="button" class="delete-notebook" title="Supprimer ce carnet, ses notes et ses tableaux">Supprimer ce carnet</button>
+    </div>
     ${verses.map(v => `
       <section class="admonition" id="v${v.verse}">
         <div class="admonition-head" dir="${dir()}"><span aria-hidden="true">✦</span> ${esc(reference(book, chapter, v.verse))}</div>
@@ -195,6 +198,45 @@ function saveNow(key) {
 }
 
 const flushNotes = () => Promise.all([...saves.keys()].map(saveNow));
+
+// ---------- deleting a chapter's notebook ----------
+// Removes its notes and tables for good, after confirmation; the chapter is greyed again.
+async function deleteNotebook() {
+  const { book, chapter, verses } = current;
+  const notes = verses.filter(v => v.note.trim()).length;
+  const tables = verses.filter(v => v.table.length).length;
+  const content = [notes && `${notes} note${notes > 1 ? "s" : ""}`, tables && `${tables} tableau${tables > 1 ? "x" : ""}`]
+    .filter(Boolean).join(" et ");
+  const question = `Supprimer le carnet ${reference(book, chapter)} ?\n\n` +
+    (content ? `${content} ${notes + tables > 1 ? "seront supprimés" : "sera supprimé"} définitivement.` : "Ce carnet est vide.");
+  if (!confirm(question)) return;
+
+  // Drop this chapter's pending saves and let any save under way finish, so none lands afterwards.
+  const inFlight = [];
+  for (const [key, s] of saves) {
+    if (s.book !== book || s.chapter !== chapter) continue;
+    clearTimeout(s.timer);
+    if (s.inFlight) { s.again = false; inFlight.push(s.inFlight); }
+    saves.delete(key);
+  }
+  await Promise.all(inFlight);
+
+  const r = await fetch(`/api/notebooks/${book}/${chapter}`, { method: "DELETE" });
+  if (!r.ok && r.status !== 404) {
+    alert(`Le carnet n'a pas pu être supprimé : ${(await r.json().catch(() => ({}))).error || r.status}`);
+    return;
+  }
+  for (const part of toc.parts)
+    for (const b of part.books)
+      if (b.osis === book) b.created = b.created.filter(c => c !== chapter);
+  current = null;
+  history.pushState({}, "", location.pathname);
+  document.title = "Benneria Notebook";
+  renderToc();
+  renderNotebook();
+}
+
+$("#view").addEventListener("click", (ev) => { if (ev.target.closest(".delete-notebook")) deleteNotebook(); });
 
 // ---------- a verb table per verse ----------
 // Shown on demand: "+ Tableau des verbes" adds one; it goes away with its last row. Cells are

@@ -8,6 +8,11 @@ body.stats main {
   justify-content: center;
 }
 
+.root-filter {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);

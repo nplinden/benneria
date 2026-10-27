@@ -10,6 +10,7 @@ let tenses = [];      // the eight tenses, in chart-stacking order (from /api/st
 let sortKey = "total";
 let sortDir = "desc";
 let page = 0;
+let filterText = "";           // the root filter box, a plain substring match
 const selected = new Set();    // roots clicked in the table, restricting the chart
 let anchorRoot = null;         // last root clicked, where a shift+click range starts from
 
@@ -21,9 +22,10 @@ function columns() {
 
 const COLUMN_LABELS = { root: "Root", total: "Total" };
 
-function sortedRoots() {
+function filteredSortedRoots() {
   const key = sortKey, dir = sortDir === "asc" ? 1 : -1;
-  return [...roots].sort((a, b) => {
+  const filtered = filterText ? roots.filter(r => r.root.includes(filterText)) : roots;
+  return [...filtered].sort((a, b) => {
     if (key === "root") return dir * a.root.localeCompare(b.root);
     return dir * (a[key] - b[key]);
   });
@@ -39,7 +41,7 @@ function renderHead() {
 
 function renderBody() {
   const cols = columns();
-  const all = sortedRoots();
+  const all = filteredSortedRoots();
   const start = page * PAGE_SIZE;
   const pageRows = all.slice(start, start + PAGE_SIZE);
   $("#statsBody").innerHTML = pageRows.map(r => `
@@ -47,7 +49,7 @@ function renderBody() {
       ${cols.map(c => c === "root"
         ? `<td class="root-cell he" dir="rtl">${esc(r.root)}</td>`
         : `<td>${r[c]}</td>`).join("")}
-    </tr>`).join("") || `<tr><td colspan="${cols.length}" class="status">No roots.</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="${cols.length}" class="status">No roots match.</td></tr>`;
   renderPager(all.length);
 }
 
@@ -83,8 +85,8 @@ $("#statsBody").addEventListener("click", (ev) => {
   if (!row) return;
   const root = row.dataset.root;
 
-  if (selected.size && ev.shiftKey && anchorRoot) {
-    const order = sortedRoots().map(r => r.root);
+  if (selected.size && ev.shiftKey && anchorRoot && filteredSortedRoots().some(r => r.root === anchorRoot)) {
+    const order = filteredSortedRoots().map(r => r.root);
     const [lo, hi] = [order.indexOf(anchorRoot), order.indexOf(root)].sort((a, b) => a - b);
     for (let i = lo; i <= hi; i++) selected.add(order[i]);
   } else if (selected.size && (ev.ctrlKey || ev.metaKey)) {
@@ -104,6 +106,12 @@ $("#firstPage").addEventListener("click", () => { page = 0; renderBody(); });
 $("#prevPage").addEventListener("click", () => { page--; renderBody(); });
 $("#nextPage").addEventListener("click", () => { page++; renderBody(); });
 $("#lastPage").addEventListener("click", () => { page = lastPageIndex; renderBody(); });
+
+$("#rootFilter").addEventListener("input", (ev) => {
+  filterText = ev.target.value.trim();
+  page = 0;
+  renderBody();
+});
 
 // ---------- chart ----------
 

@@ -51,7 +51,7 @@ function renderResults() {
   const hidden = lastResults.length - shown.length;
   $("#optsCount").hidden = !hidden;
   $("#optsCount").textContent = hidden ? `Showing ${shown.length} of ${lastResults.length} entries; ${hidden} hidden by the filters in Options.` : "";
-  out.innerHTML = shown.map(renderEntry).join("") ||
+  out.innerHTML = shown.map(e => renderEntry(e)).join("") ||
     `<div class="status">No entries match the result filters. Adjust them in Options (the gear next to the search button).</div>`;
 }
 

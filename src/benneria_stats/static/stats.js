@@ -49,12 +49,16 @@ function renderBody() {
   renderPager(all.length);
 }
 
+let lastPageIndex = 0;
+
 function renderPager(total) {
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  page = Math.min(page, pages - 1);
-  $("#pageInfo").textContent = `Page ${page + 1} of ${pages} · ${total} roots`;
+  lastPageIndex = Math.max(1, Math.ceil(total / PAGE_SIZE)) - 1;
+  page = Math.min(page, lastPageIndex);
+  $("#pageInfo").textContent = `Page ${page + 1} of ${lastPageIndex + 1} · ${total} roots`;
+  $("#firstPage").disabled = page === 0;
   $("#prevPage").disabled = page === 0;
-  $("#nextPage").disabled = page >= pages - 1;
+  $("#nextPage").disabled = page >= lastPageIndex;
+  $("#lastPage").disabled = page >= lastPageIndex;
 }
 
 $("#statsHead").addEventListener("click", (ev) => {
@@ -95,8 +99,10 @@ $("#statsBody").addEventListener("click", (ev) => {
   refreshDefinitions();
 });
 
+$("#firstPage").addEventListener("click", () => { page = 0; renderBody(); });
 $("#prevPage").addEventListener("click", () => { page--; renderBody(); });
 $("#nextPage").addEventListener("click", () => { page++; renderBody(); });
+$("#lastPage").addEventListener("click", () => { page = lastPageIndex; renderBody(); });
 
 // ---------- chart ----------
 

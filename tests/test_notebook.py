@@ -6,20 +6,22 @@ import pytest
 
 import benneria_notebook.app as notebook_app
 from benneria_notebook.store import Store
+from benneria_web.app import app as web_app
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     # A fresh notes database for each test, never the real one.
     monkeypatch.setattr(notebook_app, "_store", Store(tmp_path / "notebook.sqlite"))
-    return notebook_app.app.test_client()
+    return web_app.test_client()
 
 
 def test_page_and_styles(client):
-    for path in ("/", "/static/notebook.js", "/static/books.js", "/static/notebook.css"):
+    for path in ("/notebook", "/static/notebook.js", "/static/books.js", "/static/notebook.css"):
         assert client.get(path).status_code == 200
-    css = client.get("/static/benneria.css")
-    assert css.status_code == 200 and b"--accent" in css.data  # the dictionary's stylesheet
+    css = client.get("/static/style.css")
+    assert css.status_code == 200 and b"--accent" in css.data  # the dictionary's stylesheet,
+    # shared with the notebook rather than duplicated
 
 
 def test_toc_parts(client):

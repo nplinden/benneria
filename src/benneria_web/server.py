@@ -1,5 +1,6 @@
 """
-Development server: `uv run benneria` runs the Flask app (app.py) with Flask's built-in server.
+Development server: `uv run benneria` runs the combined Flask app (app.py) with Flask's built-in
+server.
 
 Run:
     uv run benneria                           # http://127.0.0.1:1525
@@ -14,7 +15,7 @@ from .app import app
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Benneria: a Hebrew and Aramaic dictionary web app")
+    ap = argparse.ArgumentParser(description="Benneria: a Hebrew and Aramaic dictionary and notebook")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=1525)
     ap.add_argument("--open", action="store_true", help="open the browser on start")

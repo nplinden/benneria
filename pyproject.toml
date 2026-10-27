@@ -1,13 +1,13 @@
 [project]
 name = "benneria"
 version = "0.1.0"
-description = "A small offline web dictionary for Biblical Hebrew and Aramaic, built on Open Scriptures data"
+description = "A small offline web app for Biblical Hebrew and Aramaic: a dictionary and a verse notebook"
 readme = "README.md"
 authors = [
     { name = "Nicolas Linden", email = "nicolas@nlinden.com" }
 ]
 requires-python = ">=3.9"
-# The code is MIT; the lexicon database in the package is CC BY 4.0 (DATA_LICENSE.md).
+# The code is MIT; the two databases in the package keep their own licenses (DATA_LICENSE.md).
 license = "MIT"
 license-files = ["LICENSE", "DATA_LICENSE.md"]
 dependencies = [
@@ -16,8 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-benneria = "benneria:main"
-benneria-notebook = "benneria_notebook:main"
+benneria = "benneria_web:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]
@@ -31,6 +30,6 @@ dev = [
     "pytest>=8.4.2",
 ]
 
-# Two packages: the dictionary and the notebook.
+# Three packages: the dictionary, the notebook, and the combined web app that serves both.
 [tool.uv.build-backend]
-module-name = ["benneria", "benneria_notebook"]
+module-name = ["benneria", "benneria_notebook", "benneria_web"]

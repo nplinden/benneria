@@ -18,10 +18,17 @@ services:
     environment:
       WEB_CONCURRENCY: 4          # gunicorn worker processes; about one per CPU core
     restart: unless-stopped
-    # The app only reads its database, so the container's filesystem can be read-only; gunicorn
-    # just needs somewhere to write its temporary files and control socket.
+    # The dictionary and the notebook's Bible text are read-only, so the container's filesystem
+    # can be read-only too; gunicorn just needs somewhere to write its temporary files and
+    # control socket, and the notebook needs somewhere to keep its notes and tables (/data,
+    # the volume below) so they survive a restart instead of living only in the container.
     read_only: true
     tmpfs:
       - /tmp
       - /home/benneria:mode=1777  # writable by the app's unprivileged user
+    volumes:
+      - notebook-data:/data
     # The image's own health check (a lookup on the API) applies; Compose reports it in `ps`.
+
+volumes:
+  notebook-data:

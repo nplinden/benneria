@@ -4,7 +4,9 @@
 #   docker run -p 1525:1525 benneria                 # http://localhost:1525
 #   docker run -p 1525:1525 -e WEB_CONCURRENCY=8 benneria
 #
-# The lexicon database is part of the package, so the image needs no network or volume.
+# Both databases (the dictionary's and the notebook's Bible text) are part of the package, so the
+# image needs no network. The notebook's own notes and tables need a writable volume at /data
+# (see compose.yaml) to survive a container restart; without one they are lost when it stops.
 
 # ---------- build: install the app and its locked dependencies into /app/.venv ----------
 FROM python:3.14-slim AS build
@@ -26,8 +28,10 @@ RUN uv sync --frozen --no-dev --no-editable
 
 # ---------- run: the virtual environment and gunicorn's settings, nothing else ----------
 FROM python:3.14-slim
-# A home directory: gunicorn keeps its control socket there.
-RUN useradd --system --create-home --uid 10001 benneria
+# A home directory: gunicorn keeps its control socket there. /data: the notebook's writable
+# database, outside the package (see BENNERIA_NOTEBOOK_DB below and compose.yaml).
+RUN useradd --system --create-home --uid 10001 benneria && \
+    mkdir /data && chown benneria:benneria /data
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
 COPY gunicorn.conf.py LICENSE DATA_LICENSE.md ./
@@ -35,12 +39,14 @@ COPY gunicorn.conf.py LICENSE DATA_LICENSE.md ./
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     BENNERIA_BIND=0.0.0.0:1525 \
+    BENNERIA_NOTEBOOK_DB=/data/notebook.sqlite \
     WEB_CONCURRENCY=4
 USER benneria
 EXPOSE 1525
+VOLUME /data
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:1525/api/entry?strong=1', timeout=4)"
 
 # gunicorn reads ./gunicorn.conf.py from the working directory.
-CMD ["gunicorn", "benneria.app:app"]
+CMD ["gunicorn", "benneria_web.app:app"]

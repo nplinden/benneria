@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benneria</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  body.home-root main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+  .home-root h1 {
+    text-align: center;
+    margin: 0 0 24px;
+  }
+  .apps {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .app-card {
+    flex: 1 1 260px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    text-decoration: none;
+    color: var(--ink);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .app-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .08);
+  }
+  .app-card h2 {
+    margin: 0 0 8px;
+    color: var(--accent);
+  }
+  .app-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body class="home-root">
+<main>
+  <h1>Benneria</h1>
+  <div class="apps">
+    <a class="app-card" href="/lexicon">
+      <h2>Lexicon</h2>
+      <p>Look up a Hebrew or Aramaic word and find its dictionary entries in Brown-Driver-Briggs
+        and Strong's.</p>
+    </a>
+    <a class="app-card" href="/notebook">
+      <h2>Notebook</h2>
+      <p>Take notes on Biblical verses, chapter by chapter, with verb tables alongside the text.</p>
+    </a>
+  </div>
+</main>
+</body>
+</html>

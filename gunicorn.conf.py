@@ -1,7 +1,7 @@
 """
 gunicorn settings for running Benneria in production:
 
-    uv run gunicorn benneria.app:app
+    uv run gunicorn benneria_web.app:app
 
 Settings can be overridden on the command line (e.g. --bind 0.0.0.0:1525) or, for the worker
 count, with the WEB_CONCURRENCY environment variable.

@@ -1,10 +1,10 @@
-"""HTTP endpoints, through Flask's test client."""
+"""The dictionary's HTTP endpoints, through Flask's test client on the combined app."""
 
 import json
 
 import pytest
 
-from benneria.app import app
+from benneria_web.app import app
 
 
 @pytest.fixture(scope="module")
@@ -18,13 +18,18 @@ def get(client, path, **params):
 
 
 def test_page_and_static_files(client):
-    for path in ("/", "/static/app.js", "/static/labels.js", "/static/style.css"):
+    for path in ("/", "/lexicon", "/static/app.js", "/static/labels.js", "/static/style.css"):
         assert get(client, path)[0] == 200
 
 
 def test_only_static_files_are_served(client):
-    assert get(client, "/static/../server.py")[0] == 404
+    assert get(client, "/static/../pyproject.toml")[0] == 404
     assert get(client, "/static/index.htm")[0] == 404
+
+
+def test_root_links_to_both_apps(client):
+    body = get(client, "/")[2].decode()
+    assert 'href="/lexicon"' in body and 'href="/notebook"' in body
 
 
 def test_lookup(client):

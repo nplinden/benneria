@@ -1,5 +1,6 @@
 """
-Benneria Notebook's web app (Flask): notes on Biblical verses, chapter by chapter.
+Benneria Notebook's part of the web app: notes on Biblical verses, chapter by chapter.
+Registered as a blueprint on the combined app (see benneria_web.app); not runnable on its own.
 
 Endpoints:
     /api/toc                          books by part (Torah, Nevi'im, Ketuvim), with their chapter
@@ -17,21 +18,18 @@ Endpoints:
                                       removes it)
 
 Bible text from bhsa.sqlite (read-only, CC BY-NC 4.0); the notebook's own data in a writable
-database (store.py). `app` is a WSGI application. For development:
-    uv run benneria-notebook
+database (store.py).
 """
 
 from contextlib import closing
 from importlib.resources import files
 
-from flask import Flask, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file
 
 from . import bhsa
 from .store import Store
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
-app.json.ensure_ascii = False
-app.json.sort_keys = False
+bp = Blueprint("notebook", __name__)
 
 MAX_NOTE = 100_000  # characters in one note
 # A verse's verb table: these columns (their headers are shown by the page), a few hundred rows.
@@ -75,7 +73,7 @@ def not_found(message):
     return error(404, message)
 
 
-@app.after_request
+@bp.after_request
 def no_store(response):
     # The notebook changes as you write in it; API answers must always be fresh.
     if response.mimetype == "application/json":
@@ -83,18 +81,12 @@ def no_store(response):
     return response
 
 
-@app.get("/")
+@bp.get("/notebook")
 def index():
-    return app.send_static_file("index.html")
+    return send_file(files("benneria_notebook") / "static" / "index.html")
 
 
-@app.get("/static/benneria.css")
-def benneria_css():
-    # The dictionary's stylesheet, so both apps share colours, fonts and cards.
-    return send_file(files("benneria") / "static" / "style.css", mimetype="text/css")
-
-
-@app.get("/api/toc")
+@bp.get("/api/toc")
 def toc():
     created = store().created_chapters()
     starts = {first: part for part, first in PARTS}
@@ -135,7 +127,7 @@ def check_chapter(book, chapter):
     return None
 
 
-@app.get("/api/notebooks/<book>/<int:chapter>")
+@bp.get("/api/notebooks/<book>/<int:chapter>")
 def get_notebook(book, chapter):
     if (bad := check_chapter(book, chapter)) is not None:
         return bad
@@ -144,7 +136,7 @@ def get_notebook(book, chapter):
     return jsonify(notebook(book, chapter))
 
 
-@app.post("/api/notebooks/<book>/<int:chapter>")
+@bp.post("/api/notebooks/<book>/<int:chapter>")
 def create_notebook(book, chapter):
     if (bad := check_chapter(book, chapter)) is not None:
         return bad
@@ -166,7 +158,7 @@ def check_verse(book, chapter, verse):
     return None
 
 
-@app.put("/api/notebooks/<book>/<int:chapter>/notes/<int:verse>")
+@bp.put("/api/notebooks/<book>/<int:chapter>/notes/<int:verse>")
 def save_note(book, chapter, verse):
     if (bad := check_verse(book, chapter, verse)) is not None:
         return bad
@@ -178,7 +170,7 @@ def save_note(book, chapter, verse):
     return jsonify({"verse": verse, "saved": store().set_note(book, chapter, verse, text)})
 
 
-@app.put("/api/notebooks/<book>/<int:chapter>/tables/<int:verse>")
+@bp.put("/api/notebooks/<book>/<int:chapter>/tables/<int:verse>")
 def save_table(book, chapter, verse):
     if (bad := check_verse(book, chapter, verse)) is not None:
         return bad
@@ -193,7 +185,7 @@ def save_table(book, chapter, verse):
     return jsonify({"verse": verse, "saved": store().set_table(book, chapter, verse, rows)})
 
 
-@app.delete("/api/notebooks/<book>/<int:chapter>")
+@bp.delete("/api/notebooks/<book>/<int:chapter>")
 def delete_notebook(book, chapter):
     # DELETE can't be sent by a cross-site form or a plain link, so other sites can't trigger it.
     if (bad := check_chapter(book, chapter)) is not None:

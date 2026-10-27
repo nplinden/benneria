@@ -1,5 +1,6 @@
 """
-The web app (Flask): serves the page from static/ and looks words up in data/lexicon.sqlite.
+The dictionary's part of the web app: the page at /lexicon, and lookups in data/lexicon.sqlite.
+Registered as a blueprint on the combined app (see benneria_web.app); not runnable on its own.
 
 Endpoints:
     /api/lookup?word=...    search (options: lookup_ref, always_consonants, always_split,
@@ -11,26 +12,20 @@ cacheable for a day, with an ETag identifying that data and code (API_VERSION). 
 revalidating with that ETag gets 304 Not Modified without the search running. Static files are
 revalidated on each use (no-cache plus ETag/Last-Modified), so a changed file is picked up at once.
 Errors are not cached.
-
-`app` is a WSGI application, so any WSGI server can run it. For development:
-    uv run benneria
 """
 
 import hashlib
 import sqlite3
 from importlib.resources import files
 
-from flask import Flask, jsonify, request
+from flask import Blueprint, Response, jsonify, request, send_file
 
 from .local import DB_PATH, InputTooLong, LocalLexicon
 from .refs import RefError
 
 API_MAX_AGE = 86400  # seconds a browser or proxy may reuse an API answer without asking again
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
-# Keep Hebrew readable in responses and the entries' field order as built.
-app.json.ensure_ascii = False
-app.json.sort_keys = False
+bp = Blueprint("lexicon", __name__)
 
 # One read-only connection per thread or worker process, opened on first use.
 lexicon = LocalLexicon()
@@ -68,25 +63,19 @@ def not_modified():
 
 def api_response(data=None):
     """A cacheable API answer, or 304 Not Modified when the client's copy is current."""
-    response = jsonify(data) if data is not None else app.response_class(status=304)
+    response = jsonify(data) if data is not None else Response(status=304)
     response.set_etag(API_VERSION)
     response.cache_control.public = True
     response.cache_control.max_age = API_MAX_AGE
     return response
 
 
-@app.get("/")
-@app.get("/index.html")
+@bp.get("/lexicon")
 def index():
-    return app.send_static_file("index.html")
+    return send_file(files("benneria") / "static" / "index.html")
 
 
-@app.get("/favicon.ico")
-def favicon():
-    return "", 204
-
-
-@app.get("/api/lookup")
+@bp.get("/api/lookup")
 def lookup():
     args = request.args
     word = args.get("word", "").strip()
@@ -105,7 +94,7 @@ def lookup():
     return api_response(result)
 
 
-@app.get("/api/entry")
+@bp.get("/api/entry")
 def entry():
     # Cross-references between entries: exactly one of ?id=, ?bdb= or ?strong=.
     keys = {k: request.args[k] for k in ("id", "bdb", "strong") if request.args.get(k)}

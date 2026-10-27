@@ -1,11 +1,19 @@
 # Benneria
 
-A small web dictionary for Biblical Hebrew and Aramaic. Type a word as it appears in the Bible,
-with or without vowels and prefixes, and Benneria finds its dictionary entries in
-Brown-Driver-Briggs and Strong's. It works offline: the data
-is a local database built from the Open Scriptures Hebrew Bible Project.
+A small web app for reading the Hebrew Bible, with two parts:
 
-Built with [Flask](https://flask.palletsprojects.com/); the data build and search use only the Python standard library.
+- **The dictionary** (`/lexicon`): type a word as it appears in the Bible, with or without
+  vowels and prefixes, and Benneria finds its dictionary entries in Brown-Driver-Briggs and
+  Strong's.
+- **The notebook** (`/notebook`): take notes on Bible verses, chapter by chapter, with verb
+  tables alongside the text. See [Benneria Notebook](#benneria-notebook) below.
+
+The root page (`/`) links to both. It works offline: the data is local databases built from the
+Open Scriptures Hebrew Bible Project and BHSA (see [Lexicon data](#lexicon-data) and
+[Benneria Notebook](#benneria-notebook)).
+
+Built with [Flask](https://flask.palletsprojects.com/); the dictionary's data build and search
+use only the Python standard library.
 
 ## Run
 
@@ -24,16 +32,16 @@ Run the app under [gunicorn](https://gunicorn.org/) (Linux and macOS), with the 
 `gunicorn.conf.py`:
 
 ```sh
-uv run gunicorn benneria.app:app                         # http://127.0.0.1:1525, 4 workers
-WEB_CONCURRENCY=8 uv run gunicorn benneria.app:app --bind 0.0.0.0:1525
+uv run gunicorn benneria_web.app:app                         # http://127.0.0.1:1525, 4 workers
+WEB_CONCURRENCY=8 uv run gunicorn benneria_web.app:app --bind 0.0.0.0:1525
 ```
 
 It runs several worker processes, queues up to 2048 waiting connections, restarts a worker
 stuck on a request for over 30 s, and keeps connections alive between requests. On this
 development machine, 4 workers served about 3,000 lookups a second with 32 to 128 simultaneous
 clients, at a few tens of milliseconds each, with memory steady at about 190 MB in total. The
-app is a standard WSGI application, `benneria.app:app`, so other WSGI servers (e.g. waitress on
-Windows) can run it too.
+app is a standard WSGI application, `benneria_web.app:app`, so other WSGI servers (e.g. waitress
+on Windows) can run it too.
 
 ### With Docker
 
@@ -44,18 +52,20 @@ docker run -p 1525:1525 -e WEB_CONCURRENCY=8 benneria   # more workers
 ```
 
 The image (about 150 MB) runs gunicorn with `gunicorn.conf.py` as an unprivileged user, on
-Python 3.14 with the dependencies pinned in `uv.lock`. The lexicon database is inside the
-package, so it needs no volume or network, and it has a health check on the API.
+Python 3.14 with the dependencies pinned in `uv.lock`. Both databases are inside the package, so
+the image needs no network, and it has a health check on the API. The notebook's notes and
+tables need a writable volume at `/data` to survive a restart (see `compose.yaml`); without one
+they are lost when the container stops, since everything else in the image is read-only.
 
 CI publishes the image as `ghcr.io/nplinden/benneria` (`latest` follows the main branch):
 
 ```sh
-docker run -p 1525:1525 ghcr.io/nplinden/benneria:latest
+docker run -p 1525:1525 -v benneria-notebook-data:/data ghcr.io/nplinden/benneria:latest
 ```
 
 `compose.yaml` is a sample Docker Compose setup for that image: `docker compose up -d` starts it
-on port 1525 (or `BENNERIA_PORT`), restarting it automatically, with a read-only filesystem.
-`docker compose pull` fetches a newer published image.
+on port 1525 (or `BENNERIA_PORT`), restarting it automatically, with a read-only filesystem apart
+from that `/data` volume. `docker compose pull` fetches a newer published image.
 
 Limits and caching:
 
@@ -105,22 +115,34 @@ uv run python -m benneria.local "בָּרָא" --ref "Gen 1:1"
 
 ## Layout
 
-- `src/benneria/local.py`: search over `data/lexicon.sqlite`, and opening entries by id, BDB id or Strong's number
-- `src/benneria/refs.py`: Bible references ("Lev 19:3", "I Samuel 3") to OSIS ids ("Lev.19.3")
-- `src/benneria/hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and search
-- `src/benneria/app.py`: the Flask app: serves `static/`, `/api/lookup` and `/api/entry`
-- `src/benneria/server.py`: the `benneria` command: runs the app on Flask's development server
+Three packages: `benneria` (the dictionary) and `benneria_notebook` (the notebook) each define
+their routes as a Flask [`Blueprint`](https://flask.palletsprojects.com/en/stable/blueprints/),
+with no dependency on being run on their own; `benneria_web` combines them into the one app that
+actually runs, adding the root page and the shared `/static/`.
+
+- `src/benneria_web/`: the combined app
+  - `app.py`: the Flask app: registers both blueprints, serves `/`, and serves `/static/` from
+    both apps' `static/` directories (their file names don't collide)
+  - `server.py`: the `benneria` command: runs the app on Flask's development server
+  - `static/index.html`: the root page, linking to `/lexicon` and `/notebook`
 - `gunicorn.conf.py`: production server settings (workers, connection queue, timeouts)
-- `src/benneria/static/`: the frontend
-  - `index.html`: page markup
-  - `style.css`: styles, including dark mode
-  - `labels.js`: display names for parses, parts of speech and languages
-  - `app.js`: rendering, filters, search and the options dialog
-- `src/benneria/data/lexicon.sqlite`: the lexicon database, generated by `scripts/build_data.py`
-- `src/benneria/__init__.py`: exposes `main`, the `benneria` console script
-- `src/benneria_notebook/`: Benneria Notebook (see below): `app.py` (Flask app), `store.py` (notes
-  database), `bhsa.py` (Bible text), `static/` (page, styles, book names, Markdown renderer)
-- `scripts/build_data.py`: builds the database
+- `src/benneria/`: the dictionary
+  - `local.py`: search over `data/lexicon.sqlite`, and opening entries by id, BDB id or Strong's number
+  - `refs.py`: Bible references ("Lev 19:3", "I Samuel 3") to OSIS ids ("Lev.19.3")
+  - `hebrew.py`: Hebrew normalization (cantillation and vowel stripping), shared by the data build and search
+  - `app.py`: the blueprint: the page at `/lexicon`, `/api/lookup` and `/api/entry`
+  - `static/`: the frontend
+    - `index.html`: page markup
+    - `style.css`: styles, shared with the notebook
+    - `labels.js`: display names for parses, parts of speech and languages
+    - `app.js`: rendering, filters, search and the options dialog
+  - `data/lexicon.sqlite`: the lexicon database, generated by `scripts/build_data.py`
+- `src/benneria_notebook/`: the notebook (see [Benneria Notebook](#benneria-notebook) below)
+  - `app.py`: the blueprint: the page at `/notebook`, and its API
+  - `store.py`: the notes database; `bhsa.py`: the Bible text
+  - `static/`: page, styles, book names, Markdown renderer
+- `scripts/build_data.py`: builds the lexicon database
+- `scripts/build_bhsa.py`: builds the notebook's Bible-text database
 - `scripts/compare_backends.py`: compares search results with the Sefaria API, the app's former data source
 - `tests/`: the test suite
 
@@ -168,12 +190,8 @@ changes. The app's footer shows this attribution.
 
 ## Benneria Notebook
 
-A second app, in `src/benneria_notebook/`, for taking notes on Biblical verses, chapter by chapter
-(first draft):
-
-```sh
-uv run benneria-notebook            # http://localhost:1526
-```
+The notebook, in `src/benneria_notebook/`, served at `/notebook`, is for taking notes on
+Biblical verses, chapter by chapter (first draft).
 
 - The sidebar lists the books of the Hebrew Bible by part (Torah, Nevi'im, Ketuvim), each with its
   chapters. Book names are in French by default, or in English or Hebrew (a setting kept in the
@@ -191,8 +209,8 @@ uv run benneria-notebook            # http://localhost:1526
   automatically like notes.
 
 The notebook keeps its own data in a writable SQLite database, `$BENNERIA_NOTEBOOK_DB` or else
-`~/.local/share/benneria-notebook/notebook.sqlite`. It uses the dictionary's stylesheet, so the two
-apps look alike.
+`~/.local/share/benneria-notebook/notebook.sqlite` (in the Docker image, `/data/notebook.sqlite`,
+on the `/data` volume). It uses the dictionary's stylesheet, so the two apps look alike.
 
 ### Bible text
 
@@ -212,8 +230,9 @@ exactly. The build needs Text-Fabric, in the `build` dependency group, which the
 install.
 
 BHSA's license is **CC BY-NC 4.0: no commercial use** without the German Bible Society's
-consent, and its citation is https://doi.org/10.17026/dans-z6y-skyh. The dictionary does not use
-this database. See [DATA_LICENSE.md](DATA_LICENSE.md).
+consent, and its citation is https://doi.org/10.17026/dans-z6y-skyh. The dictionary's code and
+data are independent of it, even though both apps now run in the same process and image. See
+[DATA_LICENSE.md](DATA_LICENSE.md).
 
 ## Licenses
 

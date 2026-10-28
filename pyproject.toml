@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 benneria = "benneria_web:main"
+benneria-user = "benneria_notebook.users:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]

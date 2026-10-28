@@ -6,6 +6,7 @@
 #   BENNERIA_PORT=8080 docker compose up -d   # same, on another port of this machine
 #   docker compose pull && docker compose up -d   # update to the newest published image
 #   docker compose logs -f        # follow the request log
+#   docker compose exec benneria benneria-user add NAME   # a notebook account (see README)
 #   docker compose down           # stop and remove the container
 #
 # To run your local checkout instead, replace the "image:" line with "build: .".
@@ -17,11 +18,15 @@ services:
       - "${BENNERIA_PORT:-1525}:1525"
     environment:
       WEB_CONCURRENCY: 4          # gunicorn worker processes; about one per CPU core
+      # Behind an HTTPS reverse proxy, as it should be wherever notebook passwords cross a
+      # network: send the login cookie over HTTPS only.
+      # BENNERIA_SECURE_COOKIES: "1"
     restart: unless-stopped
     # The dictionary and the notebook's Bible text are read-only, so the container's filesystem
     # can be read-only too; gunicorn just needs somewhere to write its temporary files and
-    # control socket, and the notebook needs somewhere to keep its notes and tables (/data,
-    # the volume below) so they survive a restart instead of living only in the container.
+    # control socket, and the notebook needs somewhere to keep its accounts, notes and tables,
+    # and the login cookies' signing key (/data, the volume below), so they survive a restart
+    # instead of living only in the container.
     read_only: true
     tmpfs:
       - /tmp

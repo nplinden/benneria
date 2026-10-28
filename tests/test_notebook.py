@@ -11,9 +11,16 @@ from benneria_web.app import app as web_app
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    # A fresh notes database for each test, never the real one.
-    monkeypatch.setattr(notebook_app, "_store", Store(tmp_path / "notebook.sqlite"))
-    return web_app.test_client()
+    # A fresh notes database for each test, never the real one, and logged in to its one account.
+    store = Store(tmp_path / "notebook.sqlite")
+    monkeypatch.setattr(notebook_app, "_store", store)
+    store.add_user("alice", "alice-password")
+    client = web_app.test_client()
+    assert client.post("/api/login", json={"name": "alice", "password": "alice-password"}).status_code == 200
+    return client
+
+
+ALICE = 1  # her account's id: the first one
 
 
 def test_page_and_styles(client):
@@ -57,9 +64,9 @@ def test_api_answers_are_not_cached(client):
 
 def test_store_persists(tmp_path):
     path = tmp_path / "notes.sqlite"
-    assert Store(path).create("Gen", 1) is True
-    assert Store(path).create("Gen", 1) is False  # a second process sees the first one's write
-    assert Store(path).created_chapters() == {"Gen": [1]}
+    assert Store(path).create(ALICE, "Gen", 1) is True
+    assert Store(path).create(ALICE, "Gen", 1) is False  # a second process sees the first one's write
+    assert Store(path).created_chapters(ALICE) == {"Gen": [1]}
 
 
 def test_store_location(tmp_path, monkeypatch):
@@ -90,7 +97,7 @@ def test_empty_note_is_removed(client):
     put_note(client, "Gen", 1, 1, "au commencement")
     assert put_note(client, "Gen", 1, 1, "   \n").status_code == 200
     assert client.get("/api/notebooks/Gen/1").json["verses"][0]["note"] == ""
-    assert notebook_app.store().notes("Gen", 1) == {}
+    assert notebook_app.store().notes(ALICE, "Gen", 1) == {}
 
 
 def test_note_errors(client):
@@ -129,7 +136,7 @@ def test_tables_save_and_load(client):
     put_table(client, "Isa", 6, 3, rows[:1])  # a row removed
     assert client.get("/api/notebooks/Isa/6").json["verses"][2]["table"] == rows[:1]
     put_table(client, "Isa", 6, 3, [])         # the last row removed: no table
-    assert notebook_app.store().tables("Isa", 6) == {}
+    assert notebook_app.store().tables(ALICE, "Isa", 6) == {}
 
 
 def test_table_errors(client):
@@ -165,7 +172,7 @@ def test_delete_notebook(client):
     r = client.delete("/api/notebooks/Isa/6")
     assert r.status_code == 200 and r.json["deleted"] == {"notes": 2, "tables": 1}
     assert client.get("/api/notebooks/Isa/6").status_code == 404           # gone
-    assert notebook_app.store().notes("Isa", 6) == {} and notebook_app.store().tables("Isa", 6) == {}
+    assert notebook_app.store().notes(ALICE, "Isa", 6) == {} and notebook_app.store().tables(ALICE, "Isa", 6) == {}
     isaiah = next(b for p in client.get("/api/toc").json["parts"] for b in p["books"] if b["osis"] == "Isa")
     assert isaiah["created"] == [7]                                        # greyed again; 7 untouched
     assert client.get("/api/notebooks/Isa/7").json["verses"][0]["note"] == "à garder"

@@ -1,4 +1,5 @@
 import importlib.util
+import os
 import sqlite3
 from pathlib import Path
 
@@ -7,6 +8,9 @@ import pytest
 from benneria.local import DB_PATH, LocalLexicon
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Sessions are signed with this rather than a key file made next to the real notebook database.
+os.environ.setdefault("BENNERIA_SECRET_KEY", "tests")
 
 
 @pytest.fixture(scope="session")

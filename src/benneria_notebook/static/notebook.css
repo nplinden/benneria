@@ -48,6 +48,36 @@ body.notebook footer {
   color: var(--accent);
 }
 
+/* Who is logged in, and the way out. */
+.account {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 6px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.account[hidden] {
+  display: none;
+}
+
+/* .account's, so it outranks .toc button's colours. */
+.account .link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.account .link-button:hover {
+  text-decoration: underline;
+}
+
 .names-option select {
   font: inherit;
   font-size: 12px;

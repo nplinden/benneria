@@ -5,8 +5,9 @@
 #   docker run -p 1525:1525 -e WEB_CONCURRENCY=8 benneria
 #
 # Both databases (the dictionary's and the notebook's Bible text) are part of the package, so the
-# image needs no network. The notebook's own notes and tables need a writable volume at /data
-# (see compose.yaml) to survive a container restart; without one they are lost when it stops.
+# image needs no network. The notebook's own accounts, notes and tables (and the login cookies'
+# signing key) need a writable volume at /data (see compose.yaml) to survive a container
+# restart; without one they are lost when it stops. Accounts: docker exec ... benneria-user add NAME
 
 # ---------- build: install the app and its locked dependencies into /app/.venv ----------
 FROM python:3.14-slim AS build

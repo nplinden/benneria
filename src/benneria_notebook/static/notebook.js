@@ -18,6 +18,17 @@ const reference = (osis, chapter, verse) =>
   `${bookName(osis)} ${number(chapter)}${verse ? ":" + number(verse) : ""}`;
 const dir = () => names === "he" ? "rtl" : "ltr";
 
+// ---------- account ----------
+// The page needs a login (the server sends others to /login); if the session ends while it is
+// open (logged out elsewhere, password changed), the API answers 401.
+const loginUrl = () => "/login?next=" + encodeURIComponent(location.pathname + location.search);
+
+$("#logout").addEventListener("click", async () => {
+  await flushNotes();
+  await fetch("/api/logout", { method: "POST" });
+  location.href = "/";
+});
+
 // ---------- sidebar ----------
 function renderToc() {
   $("#toc").innerHTML = toc.parts.map(part => `
@@ -66,6 +77,7 @@ async function openNotebook(book, chapter, push = true) {
       // Not created yet: create it now.
       r = await fetch(`/api/notebooks/${book}/${chapter}`, { method: "POST" });
     }
+    if (r.status === 401 && !saves.size) { location.href = loginUrl(); return; }
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
     current = data;
@@ -186,6 +198,9 @@ function saveNow(key) {
   s.inFlight = fetch(`/api/notebooks/${s.book}/${s.chapter}/${s.kind}/${s.verse}`, {
     method: "PUT", headers: { "Content-Type": "application/json" }, body })
     .then(async r => {
+      // Not lost: kept here, and saved on the next change once logged in again (in another tab,
+      // since leaving this page would lose it).
+      if (r.status === 401) throw new Error("session terminée, reconnectez-vous dans un autre onglet");
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       if (s.body === body && !s.again) { saves.delete(key); setStatus(s, "Enregistré", "saved"); }
     })
@@ -346,5 +361,8 @@ window.addEventListener("popstate", () => route(false));
 
 (async () => {
   toc = await (await fetch("/api/toc")).json();
+  if (!toc.user) { location.href = loginUrl(); return; }
+  $("#accountName").textContent = toc.user;
+  $("#account").hidden = false;
   route(false);
 })();

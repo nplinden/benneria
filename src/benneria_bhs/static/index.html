@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,16 +9,19 @@
 <link rel="stylesheet" href="/static/bhs.css">
 </head>
 <body class="bhs">
-<header class="bhs-bar">
-  <label>Book
-    <select id="book" aria-label="Book"></select>
-  </label>
-  <label>Chapter
-    <select id="chapter" aria-label="Chapter"></select>
-  </label>
-</header>
-<main id="view">
-  <p class="status">Loading…</p>
+<main>
+  <!-- Above the text, in the page's flow: it scrolls away with the chapter. -->
+  <div class="bhs-picker">
+    <label>Livre
+      <select id="book" aria-label="Livre"></select>
+    </label>
+    <label>Chapitre
+      <select id="chapter" aria-label="Chapitre"></select>
+    </label>
+  </div>
+  <div id="view">
+    <p class="status">Chargement…</p>
+  </div>
 </main>
 <footer>
   <p>Texte biblique : <a href="https://github.com/ETCBC/bhsa" target="_blank" rel="noopener">BHSA</a>

@@ -5,7 +5,11 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
 let books = [];   // [{osis, chapters}], in canonical order (from /api/toc, ignoring "created")
 let current = null;   // {book, chapter}
 
-const bookName = (osis) => (BOOK_NAMES[osis] || {}).en || osis;
+// Book names in French, as in the notebook (books.js): the dropdown and the tab's title.
+const bookName = (osis) => (BOOK_NAMES[osis] || {}).fr || osis;
+// The chapter's title, in French ("Isaïe 6") and in Hebrew ("ישעיהו ו", with a Hebrew numeral).
+const frenchTitle = (osis, chapter) => `${(BOOK_NAMES[osis] || {}).fr || osis} ${chapter}`;
+const hebrewTitle = (osis, chapter) => `${(BOOK_NAMES[osis] || {}).he || osis} ${hebrewNumeral(chapter)}`;
 
 function populateBooks() {
   $("#book").innerHTML = books.map(b => `<option value="${b.osis}">${esc(bookName(b.osis))}</option>`).join("");
@@ -38,10 +42,12 @@ function render(data) {
   const { book, chapter, verses } = data;
   document.title = `${bookName(book)} ${chapter} · Benneria BHS`;
   $("#view").innerHTML = `
-    <h1 class="bhs-title">${esc(bookName(book))} ${chapter}</h1>
-    <div class="bhs-text he" dir="rtl" lang="he">
-      ${verses.map(v => `<p class="bhs-verse" id="v${v.verse}"><span class="verse-num">${v.verse}</span>${esc(v.text)}</p>`).join("")}
-    </div>`;
+    <h1 class="bhs-title" dir="ltr">
+      <span class="bhs-title-fr" lang="fr">${esc(frenchTitle(book, chapter))}</span>
+      <span class="bhs-title-he he" dir="rtl" lang="he">${esc(hebrewTitle(book, chapter))}</span>
+    </h1>
+    <p class="bhs-text he" dir="rtl" lang="he">${verses.map(v =>
+      `<span class="bhs-verse" id="v${v.verse}"><span class="verse-num">${v.verse}</span>${esc(v.text)}</span>`).join(" ")}</p>`;
   window.scrollTo({ top: 0 });
 }
 

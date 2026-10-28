@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,11 @@
     justify-content: center;
     gap: 18px;
   }
+  /* The same Garamond as the French book name in BHS. */
   .home-root h1 {
+    font-family: "EB Garamond", Garamond, "Garamond Premier Pro", "Adobe Garamond Pro", Georgia, serif;
+    font-size: 56px;
+    font-weight: 500;
     text-align: center;
     margin: 0 0 24px;
   }
@@ -51,23 +55,24 @@
   <h1>Benneria</h1>
   <div class="apps">
     <a class="app-card" href="/lexicon">
-      <h2>Lexicon</h2>
-      <p>Look up a Hebrew or Aramaic word and find its dictionary entries in Brown-Driver-Briggs
-        and Strong's.</p>
+      <h2>Lexique</h2>
+      <p>Cherchez un mot hébreu ou araméen et trouvez ses entrées dans les dictionnaires
+        Brown-Driver-Briggs et Strong.</p>
     </a>
     <a class="app-card" href="/notebook">
-      <h2>Notebook</h2>
-      <p>Take notes on Biblical verses, chapter by chapter, with verb tables alongside the text.</p>
+      <h2>Cahier</h2>
+      <p>Prenez des notes sur les versets bibliques, chapitre par chapitre, avec des tableaux de
+        verbes à côté du texte.</p>
     </a>
     <a class="app-card" href="/bhs">
       <h2>BHS</h2>
-      <p>Read a chapter of the Hebrew Bible text, choosing the book and chapter from two
-        dropdowns.</p>
+      <p>Lisez un chapitre du texte de la Bible hébraïque, en choisissant le livre et le chapitre
+        dans deux listes.</p>
     </a>
     <a class="app-card" href="/stats">
-      <h2>Statistics</h2>
-      <p>How often each verb root occurs in each binyan, with a tense breakdown and the
-        dictionary's own definitions.</p>
+      <h2>Statistiques</h2>
+      <p>La fréquence de chaque racine verbale dans chaque binyan, avec la répartition par temps
+        et les définitions du dictionnaire.</p>
     </a>
   </div>
 </main>

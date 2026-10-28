@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benneria Statistics</title>
+<title>Benneria Statistiques</title>
 <!-- The dictionary's stylesheet (colours, fonts, the entry card), then this page's own styles. -->
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="/static/stats.css">
@@ -13,10 +13,13 @@
   <div class="search-bar">
     <div class="row">
       <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.4" y1="15.4" x2="21" y2="21"/></svg>
-      <input type="text" id="rootFilter" dir="rtl" autocomplete="off" placeholder="Filter roots…" aria-label="Filter roots">
-      <button type="button" class="ghost icon-btn" id="clearFilter" aria-label="Clear filter" title="Clear filter" hidden>
+      <input type="text" id="rootFilter" dir="rtl" autocomplete="off" placeholder="Filtrer les racines…&lrm;" aria-label="Filtrer les racines">
+      <button type="button" class="ghost icon-btn" id="clearFilter" aria-label="Effacer le filtre" title="Effacer le filtre" hidden>
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
       </button>
+      <select id="classFilter" aria-label="Classe verbale">
+        <option value="">Toutes les classes</option>
+      </select>
     </div>
   </div>
 
@@ -27,22 +30,22 @@
         <tbody id="statsBody"></tbody>
       </table>
       <div class="stats-pager">
-        <button type="button" class="ghost" id="firstPage">« First</button>
-        <button type="button" class="ghost" id="prevPage">‹ Prev</button>
+        <button type="button" class="ghost" id="firstPage" aria-label="Première page" title="Première page">«</button>
+        <button type="button" class="ghost" id="prevPage" aria-label="Page précédente" title="Page précédente">‹</button>
         <span id="pageInfo"></span>
-        <button type="button" class="ghost" id="nextPage">Next ›</button>
-        <button type="button" class="ghost" id="lastPage">Last »</button>
+        <button type="button" class="ghost" id="nextPage" aria-label="Page suivante" title="Page suivante">›</button>
+        <button type="button" class="ghost" id="lastPage" aria-label="Dernière page" title="Dernière page">»</button>
       </div>
     </div>
 
     <div class="chart-wrap">
-      <h2 class="chart-title" id="chartTitle">Every root</h2>
+      <h2 class="chart-title" id="chartTitle">Toutes les racines</h2>
       <div class="chart-rows" id="chartRows"></div>
     </div>
   </div>
 </main>
 <footer>
-  <p>Data from <a href="https://github.com/ETCBC/bhsa" target="_blank" rel="noopener">BHSA</a>
+  <p>Données : <a href="https://github.com/ETCBC/bhsa" target="_blank" rel="noopener">BHSA</a>
     (Biblia Hebraica Stuttgartensia Amstelodamensis), Eep Talstra Centre for Bible and Computer,
     <a href="https://doi.org/10.17026/dans-z6y-skyh" target="_blank" rel="noopener">doi:10.17026/dans-z6y-skyh</a>,
     <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>

@@ -280,15 +280,23 @@ Statistics, in `src/benneria_stats/`, served at `/stats`, reproduces the verb-fo
 - A table of every verb root and how often it occurs in each of the seven common binyanim
   (Paal, Piel, Hifil, Hitpael, Hofal, Pual, Nifal), with a Total column, most frequent root
   first. Click a column header to sort by it; the box above the table filters it to roots
-  whose consonants contain what's typed.
-- A bar chart of the same counts, one bar per binyan, each in that binyan's own color (matching
+  whose consonants contain what's typed, and the dropdown beside it to one verb class: strong,
+  pe-guttural, pe-aleph, pe-nun, pe-yod/vav, ayin-guttural, ayin-vav/yod, ayin-ayin,
+  lamed-guttural, lamed-aleph or lamed-he. The classes come from the root's consonants
+  (`verb_classes` in `stats.py`); a root can be in several (נשׂא is pe-nun and lamed-aleph), and
+  roots of four letters are in none. Pe-aleph means the six verbs whose aleph goes quiet (אמר,
+  אכל…); other aleph-initial roots count as pe-guttural. לקח counts as pe-nun and הלך as pe-yod,
+  as they conjugate like those.
+- A bar chart of the same counts, over every root the filters accept (all of them, with no
+  filter), one bar per binyan, each in that binyan's own color (matching
   the author's existing Anki color-coding for the binyanim, so a color means the same binyan in
   both places). Hover a bar for its breakdown across the eight tenses (Qatal, Yiqtol, Wayyiqtol,
   Imperative, the two infinitives, and the two participles).
-- Click a row anywhere to restrict the chart to that root (click it again to go back to every
-  root). Ctrl/Cmd+click adds a root to the selection, and Shift+click adds every root between it
-  and the last one clicked. With one root selected, the chart's title links to its dictionary
-  entry at `/lexicon?word=`; with several, it just reads "N roots".
+- Click a row anywhere to restrict the chart to that root (click it again to go back to the
+  filtered roots). Ctrl/Cmd+click adds a root to the selection, and Shift+click adds every root
+  between it and the last one clicked. With one root selected, the chart's title links to its
+  dictionary entry at `/lexicon?word=`; with several, or with none and a filter on, it reads
+  "N racines".
 
 ## Licenses
 

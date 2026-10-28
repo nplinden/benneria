@@ -28,6 +28,25 @@ body.stats main {
   color: var(--muted);
 }
 
+/* The verb class dropdown, right of the filter: styled like the input, and stretched to its
+   height by .row. */
+#classFilter {
+  flex: none;
+  max-width: 45%;
+  font: inherit;
+  font-size: 15px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* style.css's .icon-btn display would otherwise override the hidden attribute. */
+#clearFilter[hidden] {
+  display: none;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);

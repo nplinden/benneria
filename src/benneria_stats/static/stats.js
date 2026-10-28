@@ -11,6 +11,7 @@ let sortKey = "total";
 let sortDir = "desc";
 let page = 0;
 let filterText = "";           // the root filter box, a plain substring match
+let filterClass = "";          // the verb class dropdown: a class id, or "" for every root
 const selected = new Set();    // roots clicked in the table, restricting the chart
 let anchorRoot = null;         // last root clicked, where a shift+click range starts from
 
@@ -20,11 +21,35 @@ function columns() {
   return ["root", "total", ...binyanim];
 }
 
-const COLUMN_LABELS = { root: "Root", total: "Total" };
+const COLUMN_LABELS = { root: "Racine", total: "Total" };
+
+// The API's tense names (English, as in BHSA's documentation), as shown on this French page.
+const TENSE_LABELS = {
+  Imperative: "Impératif", "Infinitive (absolute)": "Infinitif absolu",
+  "Infinitive (construct)": "Infinitif construit", Participle: "Participe",
+  "Participle (passive)": "Participe passif",
+};
+
+// The API's verb class ids (see stats.py): the strong verbs by name, the weak classes by their
+// traditional Hebrew abbreviations.
+const CLASS_LABELS = {
+  strong: "Verbes forts",
+  "pe-guttural": "פ״גר",
+  "pe-aleph": "פ״א",
+  "pe-nun": "פ״נ",
+  "pe-yod": "פ״י / פ״ו",
+  "ayin-guttural": "ע״גר",
+  "ayin-vav-yod": "ע״ו / ע״י",
+  "ayin-ayin": "ע״ע",
+  "lamed-guttural": "ל״גר",
+  "lamed-aleph": "ל״א",
+  "lamed-he": "ל״ה",
+};
 
 function filteredSortedRoots() {
   const key = sortKey, dir = sortDir === "asc" ? 1 : -1;
-  const filtered = filterText ? roots.filter(r => r.root.includes(filterText)) : roots;
+  const filtered = roots.filter(r => (!filterText || r.root.includes(filterText))
+    && (!filterClass || r.classes?.includes(filterClass)));
   return [...filtered].sort((a, b) => {
     if (key === "root") return dir * a.root.localeCompare(b.root);
     return dir * (a[key] - b[key]);
@@ -50,7 +75,7 @@ function renderBody() {
         ? `<td class="root-cell he" dir="rtl">${esc(r.root)}</td>`
         : `<td>${r[c]}</td>`).join("")}
     </tr>`);
-  if (!rowsHtml.length) rowsHtml.push(`<tr><td colspan="${cols.length}" class="status">No roots match.</td></tr>`);
+  if (!rowsHtml.length) rowsHtml.push(`<tr><td colspan="${cols.length}" class="status">Aucune racine ne correspond.</td></tr>`);
   // Padded to a full page of rows, so filtering down to fewer roots doesn't shrink the table
   // card (and, with it, the chart card stretched to match its height).
   while (rowsHtml.length < PAGE_SIZE) rowsHtml.push(`<tr class="filler-row"><td colspan="${cols.length}">&nbsp;</td></tr>`);
@@ -63,7 +88,7 @@ let lastPageIndex = 0;
 function renderPager(total) {
   lastPageIndex = Math.max(1, Math.ceil(total / PAGE_SIZE)) - 1;
   page = Math.min(page, lastPageIndex);
-  $("#pageInfo").textContent = `Page ${page + 1} of ${lastPageIndex + 1} · ${total} roots`;
+  $("#pageInfo").textContent = `Page ${page + 1} sur ${lastPageIndex + 1} · ${total} racine${total === 1 ? "" : "s"}`;
   $("#firstPage").disabled = page === 0;
   $("#prevPage").disabled = page === 0;
   $("#nextPage").disabled = page >= lastPageIndex;
@@ -117,6 +142,7 @@ $("#rootFilter").addEventListener("input", (ev) => {
   $("#clearFilter").hidden = !filterText;
   page = 0;
   renderBody();
+  if (!selected.size) refreshChart();
 });
 
 $("#clearFilter").addEventListener("click", () => {
@@ -125,22 +151,39 @@ $("#clearFilter").addEventListener("click", () => {
   $("#clearFilter").hidden = true;
   page = 0;
   renderBody();
+  if (!selected.size) refreshChart();
   $("#rootFilter").focus();
+});
+
+$("#classFilter").addEventListener("change", (ev) => {
+  filterClass = ev.target.value;
+  page = 0;
+  renderBody();
+  if (!selected.size) refreshChart();
 });
 
 // ---------- chart ----------
 
+// The chart counts the selected roots; with none selected, every root the filters accept (the
+// server applies the same filters, rather than this page sending them all in the URL).
+let chartRequest = 0;
 async function refreshChart() {
   const params = new URLSearchParams();
   for (const root of selected) params.append("root", root);
+  if (!selected.size && filterText) params.set("contains", filterText);
+  if (!selected.size && filterClass) params.set("class", filterClass);
+  const request = ++chartRequest;
   const r = await fetch("/api/stats/chart?" + params.toString());
   const data = await r.json();
+  if (request !== chartRequest) return;  // a later change already asked for a newer chart
   tenses = data.tenses;
   renderChart(data.data);
-  $("#chartTitle").innerHTML = selected.size === 0 ? "Every root"
+  const matching = filteredSortedRoots().length;
+  $("#chartTitle").innerHTML = selected.size === 0
+    ? (filterText || filterClass ? `${matching} racine${matching === 1 ? "" : "s"}` : "Toutes les racines")
     : selected.size === 1
       ? `<a href="/lexicon?word=${encodeURIComponent([...selected][0])}" class="he">${esc([...selected][0])}</a>`
-      : `${selected.size} roots`;
+      : `${selected.size} racines`;
 }
 
 // Each binyan's own colour (matching this page's author's Anki palette; see stats.css).
@@ -154,7 +197,7 @@ function renderChart(rows) {
   const totals = rows.map(row => tenses.reduce((sum, t) => sum + row[t], 0));
   const max = Math.max(1, ...totals);
   $("#chartRows").innerHTML = rows.map((row, i) => {
-    const tooltip = tenses.filter(t => row[t]).map(t => `${t}: ${row[t]}`).join("\n");
+    const tooltip = tenses.filter(t => row[t]).map(t => `${TENSE_LABELS[t] || t} : ${row[t]}`).join("\n");
     return `
     <div class="chart-row">
       <span class="chart-row-label">${esc(row.binyan)}</span>
@@ -171,6 +214,9 @@ function renderChart(rows) {
   const data = await (await fetch("/api/stats/roots")).json();
   roots = data.roots;
   binyanim = data.binyanim;
+  // An older server sends no classes: the dropdown then just stays at "every class".
+  $("#classFilter").insertAdjacentHTML("beforeend", (data.classes || []).map(c =>
+    `<option value="${esc(c)}">${esc(CLASS_LABELS[c] || c)}</option>`).join(""));
   renderHead();
   renderBody();
   await refreshChart();

@@ -152,7 +152,8 @@ the root page and the shared `/static/`.
   - `static/`: page, styles, book names, Markdown renderer
 - `src/benneria_bhs/`: BHS, a chapter of Bible text and nothing else
   - `app.py`: the blueprint: the page at `/bhs`, and `/api/bhs/<book>/<chapter>`
-  - `static/`: page, its top bar's styles, and the book/chapter dropdowns' logic
+  - `static/`: page, its styles, the book/chapter dropdowns' logic, and `bhs-justify.js`, the
+    text's justification
 - `src/benneria_stats/`: Statistics (see [Statistics](#statistics) below)
   - `stats.py`: the root/binyan and binyan/tense counts, computed once from `bhsa.sqlite`
   - `app.py`: the blueprint: the page at `/stats`, `/api/stats/roots` and `/api/stats/chart`
@@ -260,6 +261,14 @@ no notes, no verb tables, and no notebook needs to exist for a chapter to show.
 It reads the same `bhsa.sqlite` as the notebook (above), through the same `benneria_notebook.bhsa`
 module, so there is nothing of its own to build. It gets the list of books and their chapter
 counts from the notebook's `/api/toc`, rather than repeating that lookup.
+
+The chapter is one running, justified paragraph, with a French title on the left and a Hebrew one
+on the right. `bhs-justify.js` does the justification rather than the browser: it fills each line
+by widening the gaps after a sof pasuq (׃) first, up to 4 normal spaces each, and only then the
+spaces between words, evenly, so word spacing stays even where a line has a verse end to absorb the
+slack. It changes only the spaces' `word-spacing`, not the text, so selecting, copying and searching
+are unaffected; it re-runs when the column's width changes. Without JavaScript, when printing, or if
+its spacing ever changed the line breaks, the browser's own justification applies instead.
 
 ## Statistics
 

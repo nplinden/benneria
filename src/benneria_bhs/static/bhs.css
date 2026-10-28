@@ -69,6 +69,24 @@ body.bhs main {
   text-align-last: start;
 }
 
+/* bhs-justify.js justifies itself, widening the gaps after a sof pasuq before the spaces between
+   words; the browser's justification is off meanwhile. When printing, the page width differs, so
+   the browser's justification comes back and the script's spacing is ignored. */
+.bhs-text.js-justify {
+  text-align: start;
+}
+
+@media print {
+  .bhs-text.js-justify {
+    text-align: justify;
+  }
+
+  .bhs-text .vgap,
+  .bhs-text .ws {
+    word-spacing: normal !important;
+  }
+}
+
 .verse-num {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 13px;

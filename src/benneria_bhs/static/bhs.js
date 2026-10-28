@@ -38,6 +38,13 @@ async function openChapter(book, chapter, push = true) {
   }
 }
 
+// Each space keeps its character but gets a span, so bhs-justify.js can widen it: .vgap after a
+// sof pasuq (between verses, or before a paragraph mark ס / פ), .ws between words.
+const VERSE_GAP = '<span class="vgap"> </span>';
+const spaced = (text) => text.split(" ").map(esc)
+  .reduce((html, word, i, words) => i === 0 ? word
+    : html + (words[i - 1].endsWith("׃") ? VERSE_GAP : '<span class="ws"> </span>') + word, "");
+
 function render(data) {
   const { book, chapter, verses } = data;
   document.title = `${bookName(book)} ${chapter} · Benneria BHS`;
@@ -47,8 +54,9 @@ function render(data) {
       <span class="bhs-title-he he" dir="rtl" lang="he">${esc(hebrewTitle(book, chapter))}</span>
     </h1>
     <p class="bhs-text he" dir="rtl" lang="he">${verses.map(v =>
-      `<span class="bhs-verse" id="v${v.verse}"><span class="verse-num">${v.verse}</span>${esc(v.text)}</span>`).join(" ")}</p>`;
+      `<span class="bhs-verse" id="v${v.verse}"><span class="verse-num">${v.verse}</span>${spaced(v.text)}</span>`).join(VERSE_GAP)}</p>`;
   window.scrollTo({ top: 0 });
+  scheduleJustify();  // bhs-justify.js
 }
 
 $("#book").addEventListener("change", () => {

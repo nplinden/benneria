@@ -14,7 +14,7 @@ def client():
 
 
 def test_page_and_static_files(client):
-    for path in ("/bhs", "/static/bhs.js", "/static/bhs.css", "/static/books.js",
+    for path in ("/bhs", "/static/bhs.js", "/static/bhs-justify.js", "/static/bhs.css", "/static/books.js",
                  "/static/notebook.css", "/static/style.css"):
         assert client.get(path).status_code == 200
 
